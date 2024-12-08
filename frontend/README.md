@@ -15,6 +15,24 @@ DESIGN
 
 
 
+#### Setup React Project
+
+````
+npm install react
+
+````
+
+#### Running React Project
+
+````
+npm run dev
+````
+
+
+
+
+
+
 
 
 
