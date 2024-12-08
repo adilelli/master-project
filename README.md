@@ -78,8 +78,8 @@ Where
 	STR: REF STR-EDU-PG-AKA-
 
  Source Code
-  Front End: REF FE-EDU-PG-AKA-
-  Back End: REF BE-EDU-PG-AKA-
+	Front End: REF FE-EDU-PG-AKA-
+	Back End: REF BE-EDU-PG-AKA-
  
 
 ##### Source Code Configuration Control
