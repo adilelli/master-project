@@ -50,13 +50,13 @@ Assign adil to review. Most likely I'll ask you to bump version number.
 The numbering scheme for the components for the PG project use the following method:
 
 System identification:
-	VMCS-AKA
+	EDU-AKA
 
 CSCI identification:
 	PG-AKA
 
 Where
-	VMCS		- System name
+	EDU		- System name
 	PG		- CSCI name
 	AKA		- Company name
 
@@ -66,20 +66,20 @@ DOCNAME: REF XXX-VMCS-PG-AKA-VX
 
 Where
 		XXX		- Abbreviation for document name
-		VMCS		- System name
+		EDU		- System name
 		PG		- CSCI name
 		AKA		- Company name
 		VX		- Revision index (e.g. V1, V2, V3, …)
 
-	SDP: REF SDP-VMCS-PG-AKA-
-	SRS: REF SRS-VMCS-PG-AKA-
-	SDD: REF SDD-VMCS-PG-AKA-
-	STD: REF STD-VMCS-PG-AKA-
-	STR: REF STR-VMCS-PG-AKA-
+	SDP: REF SDP-EDU-PG-AKA-
+	SRS: REF SRS-EDU-PG-AKA-
+	SDD: REF SDD-EDU-PG-AKA-
+	STD: REF STD-EDU-PG-AKA-
+	STR: REF STR-EDU-PG-AKA-
 
  Source Code
-  Front End: REF FE-VMCS-PG-AKA-
-  Back End: REF BE-VMCS-PG-AKA-
+  Front End: REF FE-EDU-PG-AKA-
+  Back End: REF BE-EDU-PG-AKA-
  
 
 ##### Source Code Configuration Control
