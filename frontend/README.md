@@ -1,8 +1,8 @@
 
-This is the frontend of the project
+# FrontEnd
 
 
-Written in React
+## Written in React
 
 
 REQUIREMENT
