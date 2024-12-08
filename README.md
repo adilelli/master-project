@@ -20,4 +20,24 @@ STR
 
 
 
+#### To push to Github
+
+```
+git add .
+
+git commit -m "YOUR_COMMIT"
+
+git checkout -b "YOUR_BRANCH"
+
+git push origin "YOUR_BRANCH"
+
+```
+
+After that, you create a pull request to merge your changes into DEVELOP branch (not MAIN branch)
+
+Assign adil to review. Most likely I'll ask you to bump version number.
+
+
+
+
 
