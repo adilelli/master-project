@@ -44,6 +44,49 @@ After that, you create a pull request to merge your changes into DEVELOP branch 
 Assign adil to review. Most likely I'll ask you to bump version number.
 
 
+#### Configuration
+##### Identification methods 
+
+The numbering scheme for the components for the PG project use the following method:
+
+System identification:
+	VMCS-AKA
+
+CSCI identification:
+	PG-AKA
+
+Where
+	VMCS		- System name
+	PG		- CSCI name
+	AKA		- Company name
+
+Document and article of the Developmental Configuration for the PG project are:
+
+DOCNAME: REF XXX-VMCS-PG-AKA-VX
+
+Where
+		XXX		- Abbreviation for document name
+		VMCS		- System name
+		PG		- CSCI name
+		AKA		- Company name
+		VX		- Revision index (e.g. V1, V2, V3, …)
+
+	SDP: REF SDP-VMCS-PG-AKA-
+	SRS: REF SRS-VMCS-PG-AKA-
+	SDD: REF SDD-VMCS-PG-AKA-
+	STD: REF STD-VMCS-PG-AKA-
+	STR: REF STR-VMCS-PG-AKA-
+
+ Source Code
+  Front End: REF FE-VMCS-PG-AKA-
+  Back End: REF BE-VMCS-PG-AKA-
+ 
+
+##### Source Code Configuration Control
+
+![Screenshot 2024-12-08 at 19 54 10](https://github.com/user-attachments/assets/6152d754-cd6f-4ba4-aec2-4e801646e3eb)
+
+
 
 
 
