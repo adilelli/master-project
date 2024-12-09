@@ -5,7 +5,7 @@
 Open terminal 
 ```
 cd desktop
-git clone 
+git clone https://github.com/adilelli/master-project.git
 cd master-project
 code .
 cd front-end
