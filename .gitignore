@@ -1,1 +1,56 @@
-/backend/utm
+/backend/newenv
+/newenv
+/backend/myenv
+/myenv
+
+# Environment Variables
+.env
+*.env
+*.secret
+
+# Python Bytecode
+__pycache__
+*.py[cod]
+*.pyo
+
+# Virtual Environment
+venv/
+env/
+
+# IDE and Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs and Temporary Files
+logs/
+*.log
+*.tmp
+
+# Database Files
+*.db
+*.sqlite3
+
+# Compiled Files
+*.so
+*.out
+*.class
+*.DS_Store
+
+# Docker
+.docker/
+docker-compose.override.yml
+
+# Test and Coverage Artifacts
+htmlcov/
+.coverage
+.tox/
+.nox/
+*.cover
+*.py,cover
+
+# Static and Media Files
+staticfiles/
+media/
