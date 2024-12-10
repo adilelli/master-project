@@ -54,6 +54,14 @@ async def get_all_buildings():
     ]
     return result
 
+# 2. Fetch a building by ID
+@app.get("/buildings/{building_id}", tags=["Buildings"])
+async def get_building_by_id(building_id: str):
+    building = collection.find_one({"_id": ObjectId(building_id)})
+    if not building:
+        raise HTTPException(status_code=404, detail="Building not found")
+    return {**building, "_id": str(building["_id"])}
+
 # 3. Add a new building
 @app.post("/buildings", tags=["Buildings"], status_code=201)
 async def create_building(building: BuildingDto):
@@ -80,3 +88,11 @@ async def update_building_shops(building_id: str, request: Request):
         raise HTTPException(status_code=404, detail="Building not found")
 
     return {"message": "Shops updated successfully"}
+
+# 2. Fetch a building by ID
+@app.delete("/buildings/{building_id}", tags=["Buildings"])
+async def delete_building_by_id(building_id: str):
+    building = collection.delete_one({"_id": ObjectId(building_id)})
+    if not building:
+        raise HTTPException(status_code=404, detail="Building not found")
+    return {"message": "Shops deleted successfully"}
