@@ -1,3 +1,35 @@
+
+# FrontEnd
+#### Clone project from Github
+
+Open terminal 
+```
+cd desktop
+git clone https://github.com/adilelli/master-project.git
+cd master-project
+code .
+cd front-end
+cd client
+npm i
+npm start
+
+```
+
+#### Setup React Project
+
+````
+npm install react
+
+````
+
+#### Running React Project
+
+````
+npm start
+````
+
+
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
