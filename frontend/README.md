@@ -9,7 +9,6 @@ git clone https://github.com/adilelli/master-project.git
 cd master-project
 code .
 cd front-end
-cd client
 npm i
 npm start
 
