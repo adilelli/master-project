@@ -76,14 +76,14 @@ Where
   VX.XX	- Revision number (e.g. V1.00, V1.12, V2.00, …)
   
 ```
-	Documentation
+Documentation
  SDP: REF SDP-FSES-SG-VX.XX
 	SRS: REF SRS-FSES-SG-VX.XX
 	SDD: REF SDD-FSES-SG-VX.XX
 	STD: REF STD-FSES-SG-VX.XX
 	STR: REF STR-FSES-SG-VX.XX
 
- Source Code
+Source Code
 	Front End: REF FE-FSES-SG-VX.XX
 	Back End: REF BE-FSES-SG-VX.XX
 
