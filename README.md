@@ -57,12 +57,8 @@ The numbering scheme for the components for the PG project use the following met
 System identification:
 	FSES-SG
 
-CSCI identification:
-	FSES-SG
-
 Where
 	FSES		- System name
-	PG		- CSCI name
 	SG		- Company name
 
 Document and article of the Developmental Configuration for the PG project are:
