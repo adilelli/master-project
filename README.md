@@ -58,7 +58,7 @@ System identification:
 	FSES-SG
 
 CSCI identification:
-	PG-AKA
+	FSES-SG
 
 Where
 	FSES		- System name
