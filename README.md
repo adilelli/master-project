@@ -67,7 +67,7 @@ Where
 
 Document and article of the Developmental Configuration for the PG project are:
 
-DOCNAME: REF XXX-VMCS-PG-AKA-VX
+DOCNAME: REF XXX-FSES-SG-VX.XX
 
 Where
 		XXX		- Abbreviation for document name
@@ -75,8 +75,9 @@ Where
 		SG - Company abbreviation
   VX.XX	- Revision number (e.g. V1.00, V1.12, V2.00, …)
   
-
-	SDP: REF SDP-FSES-SG-VX.XX
+```
+	Documentation
+ SDP: REF SDP-FSES-SG-VX.XX
 	SRS: REF SRS-FSES-SG-VX.XX
 	SDD: REF SDD-FSES-SG-VX.XX
 	STD: REF STD-FSES-SG-VX.XX
@@ -85,7 +86,8 @@ Where
  Source Code
 	Front End: REF FE-FSES-SG-VX.XX
 	Back End: REF BE-FSES-SG-VX.XX
- 
+
+```
 
 ##### Source Code Configuration Control
 
