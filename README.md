@@ -11,11 +11,11 @@ https://docs.google.com/spreadsheets/d/1RFjPAWf8vHNomkk3C8EVcOm0lKikBEK_pZzqP5uT
 
 
 SPMP 
-https://docs.google.com/document/d/1FmEpxDnfQjuT7CiB-MBMGhl5jMbAxCUapMaBrmKU1fQ/edit?usp=sharing
+SPMP-FSES-SG-V1.00 https://docs.google.com/document/d/1FmEpxDnfQjuT7CiB-MBMGhl5jMbAxCUapMaBrmKU1fQ/edit?usp=sharing
 
 
 SRS
-https://docs.google.com/document/d/1SPPuPKfapCvnwngHQPKh03TzvScS7mPfgieQxSsM264/edit
+SRS-FSES-SG-VX.XX https://docs.google.com/document/d/1SPPuPKfapCvnwngHQPKh03TzvScS7mPfgieQxSsM264/edit
 
 SDD
 
@@ -74,6 +74,7 @@ Where
 ```
 Documentation
  SDP: REF SDP-FSES-SG-VX.XX
+	SPMP: REF SPMP-FSES-SG-VX.XX
 	SRS: REF SRS-FSES-SG-VX.XX
 	SDD: REF SDD-FSES-SG-VX.XX
 	STD: REF STD-FSES-SG-VX.XX
