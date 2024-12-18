@@ -11,11 +11,11 @@ https://docs.google.com/spreadsheets/d/1RFjPAWf8vHNomkk3C8EVcOm0lKikBEK_pZzqP5uT
 
 
 SPMP 
-https://docs.google.com/document/d/1FmEpxDnfQjuT7CiB-MBMGhl5jMbAxCUapMaBrmKU1fQ/edit?usp=sharing
+SPMP-FSES-SG-V1.00 https://docs.google.com/document/d/1FmEpxDnfQjuT7CiB-MBMGhl5jMbAxCUapMaBrmKU1fQ/edit?usp=sharing
 
 
 SRS
-
+SRS-FSES-SG-VX.XX https://docs.google.com/document/d/1SPPuPKfapCvnwngHQPKh03TzvScS7mPfgieQxSsM264/edit
 
 SDD
 
@@ -55,37 +55,36 @@ Assign adil to review. Most likely I'll ask you to bump version number.
 The numbering scheme for the components for the PG project use the following method:
 
 System identification:
-	EDU-AKA
-
-CSCI identification:
-	PG-AKA
+	FSES-SG
 
 Where
-	EDU		- System name
-	PG		- CSCI name
-	AKA		- Company name
+	FSES		- System name
+	SG		- Company name
 
 Document and article of the Developmental Configuration for the PG project are:
 
-DOCNAME: REF XXX-VMCS-PG-AKA-VX
+DOCNAME: REF XXX-FSES-SG-VX.XX
 
 Where
 		XXX		- Abbreviation for document name
-		EDU		- System name
-		PG		- CSCI name
-		AKA		- Company name
-		VX		- Revision index (e.g. V1, V2, V3, …)
+		FSES		- Product name
+		SG - Company abbreviation
+  VX.XX	- Revision number (e.g. V1.00, V1.12, V2.00, …)
+  
+```
+Documentation
+ SDP: REF SDP-FSES-SG-VX.XX
+	SPMP: REF SPMP-FSES-SG-VX.XX
+	SRS: REF SRS-FSES-SG-VX.XX
+	SDD: REF SDD-FSES-SG-VX.XX
+	STD: REF STD-FSES-SG-VX.XX
+	STR: REF STR-FSES-SG-VX.XX
 
-	SDP: REF SDP-EDU-PG-AKA-
-	SRS: REF SRS-EDU-PG-AKA-
-	SDD: REF SDD-EDU-PG-AKA-
-	STD: REF STD-EDU-PG-AKA-
-	STR: REF STR-EDU-PG-AKA-
+Source Code
+	Front End: REF FE-FSES-SG-VX.XX
+	Back End: REF BE-FSES-SG-VX.XX
 
- Source Code
-	Front End: REF FE-EDU-PG-AKA-
-	Back End: REF BE-EDU-PG-AKA-
- 
+```
 
 ##### Source Code Configuration Control
 
