@@ -13,15 +13,23 @@ userCollection = configUser()
 @router.post("/", tags=["evaluation"], status_code=201)
 async def add_evaluation(evaluation: evaluationDto, current_user: Tuple[str, Any] = Depends(get_current_user)):
     username, role = current_user
-    if(role > 2):
+    if(role != 1):
         raise HTTPException(status_code=403, detail = "Only Office Assistant can add evaluation")
+    
     result = evalCollection.insert_one(evaluation.model_dump(exclude_none=True))
     return {"_id": str(result.inserted_id), "evaluation": evaluation}
 
 @router.put("/examiner/{evaluationId}", response_model=Response, tags=["evaluation"])
 async def update_examiner(evaluationId: str, evaluation: evaluationDto, current_user: Tuple[str, Any] = Depends(get_current_user)):
+
+    username, role = current_user
+
+    if role != 1 or role != 3 or role != 4: #besides OA or Professor
+        raise HTTPException(status_code=403, detail="You do not have the permission to add examiner")
+    
     if not ObjectId.is_valid(evaluationId):
         raise HTTPException(status_code=400, detail="Invalid evaluation ID format")
+    
     evaluation_data = evaluation.model_dump()
     if(evaluation.supervisorId):
         supervisorId = userCollection.find_one({"userName": evaluation.supervisorId})
@@ -48,12 +56,14 @@ async def update_examiner(evaluationId: str, evaluation: evaluationDto, current_
     return Response(response="Evaluation updated successfully", viewModel = evaluation, status=True)
 
 @router.put("/chairperson/{evaluationId}", response_model=Response, tags=["evaluation"])
-async def update_evaluation(evaluationId: str, evaluation: evaluationDto, current_user: Tuple[str, Any] = Depends(get_current_user)):
+async def update_chairperson(evaluationId: str, evaluation: evaluationDto, current_user: Tuple[str, Any] = Depends(get_current_user)):
     # Validate evaluation ID format
     if not ObjectId.is_valid(evaluationId):
         raise HTTPException(status_code=400, detail="Invalid evaluation ID format")
     
     evaluation_data = evaluation.model_dump()
+
+    username, role = current_user
 
     # Build query to check chairperson session limits
     query = {}
@@ -64,6 +74,9 @@ async def update_evaluation(evaluationId: str, evaluation: evaluationDto, curren
 
     # Check if chairperson exceeds session limit
     evaluation_count = evalCollection.count_documents(query)
+
+    if role != 2 :
+        raise HTTPException(status_code=403, detail="Only chairperson can assign chairperson")
     if evaluation_count > 4:
         raise HTTPException(status_code=400, detail="Chairperson cannot chair more than 4 sessions per semester")
     

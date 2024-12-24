@@ -8,6 +8,7 @@ class UserDto(BaseModel):
     password: str = Field(..., min_length=8, max_length=16, pattern="^[a-zA-Z0-9]*$")  # Alphanumeric 8-16
     attempt: int #max 3
     userRole: int #student=0, OA=1, PC=2, AP=3, P=4
+    verified: bool
 
     class Config:
         orm_mode = True
@@ -18,7 +19,7 @@ class evaluationDto(BaseModel):
     coSupervisorId: Optional[str] = None  # FK
     programType: Optional[str] = None
     evaluationType: Optional[str] = None
-    semester: Optional[str] = None
+    semester: Optional[str] = None      
     postponeStatus: Optional[int] = None  # postpone=0, ongoing=1
     examinerId1: Optional[str] = None  # FK AP  P if S/C==P
     examinerId2: Optional[str] = None  # FK
