@@ -2,7 +2,7 @@ from typing import Any, Tuple
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from bson.objectid import ObjectId
 from services.auth_services import get_current_user
-from dtos import evaluationDto, Response
+from dtos import evaluationDb, Response
 from config import configEvaluation, configUser
 
 # Initialize Router
@@ -10,8 +10,18 @@ router = APIRouter()
 evalCollection = configEvaluation()
 userCollection = configUser()
 
+# +PrepareEvaluation()/
+# +ViewEvaluation()/
+# +UpdateSupervisor() 
+# +ViewPostponedEvaluation()/
+# +viewExaminer()/
+# +AddExaminer()/
+# +UpdateExaminer()/
+# +AddChairPerson()/
+# +viewChairPerson()/
+
 @router.post("/", tags=["evaluation"], status_code=201)
-async def add_evaluation(evaluation: evaluationDto, current_user: Tuple[str, Any] = Depends(get_current_user)):
+async def PrepareEvaluation(evaluation: evaluationDb, current_user: Tuple[str, Any] = Depends(get_current_user)):
     username, role = current_user
     if(role != 1):
         raise HTTPException(status_code=403, detail = "Only Office Assistant can add evaluation")
@@ -20,7 +30,25 @@ async def add_evaluation(evaluation: evaluationDto, current_user: Tuple[str, Any
     return {"_id": str(result.inserted_id), "evaluation": evaluation}
 
 @router.put("/examiner/{evaluationId}", response_model=Response, tags=["evaluation"])
-async def update_examiner(evaluationId: str, evaluation: evaluationDto, current_user: Tuple[str, Any] = Depends(get_current_user)):
+async def UpdateSupervisor(evaluationId: str, evaluation: evaluationDb, current_user: Tuple[str, Any] = Depends(get_current_user)):
+
+    username, role = current_user
+
+    if role != 1 : #besides OA 
+        raise HTTPException(status_code=403, detail="You do not have the permission to add examiner")
+    
+    if not ObjectId.is_valid(evaluationId):
+        raise HTTPException(status_code=400, detail="Invalid evaluation ID format")
+    
+    evaluation_data = evaluation.model_dump()
+
+    result = evalCollection.update_one({"_id": ObjectId(evaluationId)}, {"$set": evaluation_data})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Evaluation not found")
+    return Response(response="Evaluation updated successfully", viewModel = evaluation, status=True)
+
+@router.put("/examiner/{evaluationId}", response_model=Response, tags=["evaluation"])
+async def AddUpdateExaminer(evaluationId: str, evaluation: evaluationDb, current_user: Tuple[str, Any] = Depends(get_current_user)):
 
     username, role = current_user
 
@@ -56,7 +84,7 @@ async def update_examiner(evaluationId: str, evaluation: evaluationDto, current_
     return Response(response="Evaluation updated successfully", viewModel = evaluation, status=True)
 
 @router.put("/chairperson/{evaluationId}", response_model=Response, tags=["evaluation"])
-async def update_chairperson(evaluationId: str, evaluation: evaluationDto, current_user: Tuple[str, Any] = Depends(get_current_user)):
+async def AddChairPerson(evaluationId: str, evaluation: evaluationDb, current_user: Tuple[str, Any] = Depends(get_current_user)):
     # Validate evaluation ID format
     if not ObjectId.is_valid(evaluationId):
         raise HTTPException(status_code=400, detail="Invalid evaluation ID format")
@@ -133,7 +161,7 @@ async def delete_evaluation(evaluationId: str, current_user: Any = Depends(get_c
 
 
 @router.get("/", tags=["evaluation"])
-async def get_evaluations(
+async def ViewEvaluation(
     studentId: str = Query(None),  # Optional query parameter
     supervisorId: str = Query(None),
     coSupervisorId: int = Query(None),
