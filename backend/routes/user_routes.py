@@ -1,6 +1,6 @@
 from bson import ObjectId
 from fastapi import APIRouter, HTTPException, Path
-from dtos import UserDto
+from dtos import UserDb
 from config import configUser
 
 # Initialize Router
@@ -8,9 +8,15 @@ router = APIRouter()
 userCollection = configUser()
 
 #masterlist
+# +CreateUser()/
+# +Login()/
+# +Delete()/
+# +ViewMasterlist()/
+# +UpdateUser()/
+
 #get masterlist by userName or Role
 @router.get("/", tags=["users"])
-async def get_user(userName: str = None, userRole: int = None):
+async def ViewMasterlist(userName: str = None, userRole: int = None):
     # Build query based on the provided parameters
     query = {}
     if userName is not None:
@@ -36,7 +42,7 @@ async def get_user(userName: str = None, userRole: int = None):
     return result
 
 @router.post("/", tags=["users"], status_code=201)
-async def add_user(user: UserDto):
+async def CreateUser(user: UserDb):
     # Validate password length
     if (user.userRole != 0 and (len(user.password) < 8 or len(user.password) > 16)):
         raise HTTPException(status_code=400, detail="Password must be between 8 and 16 characters")
@@ -53,7 +59,7 @@ async def add_user(user: UserDto):
 
 #update masterlist
 @router.put("/{userName}", tags=["users"])
-async def update_user(userName: str, user: UserDto):
+async def UpdateUser(userName: str, user: UserDb):
     user_data = user.model_dump(exclude_unset=True)
     result = userCollection.update_one({"userName": userName}, {"$set": user_data})
     if result.matched_count == 0:
@@ -64,7 +70,7 @@ async def update_user(userName: str, user: UserDto):
 
 #delete masterlist
 @router.delete("/{userName}", tags=["users"])
-async def delete_user(userName: str):
+async def Delete(userName: str):
     result = userCollection.delete_one({"userName": userName})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="User not found")
