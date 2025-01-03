@@ -6,9 +6,9 @@ from datetime import datetime
 class UserDb(BaseModel):
     userName: str
     password: str = Field(..., min_length=8, max_length=16, pattern="^[a-zA-Z0-9]*$")  # Alphanumeric 8-16
-    attempt: int #max 3
+    attempt: Optional[int] = None  # FK #max 3
     userRole: int #student=0, OA=1, PC=2, AP=3, P=4
-    firstTimer: bool
+    firstTimer: Optional[bool] = None  # FK
 
     class Config:
         orm_mode = True
