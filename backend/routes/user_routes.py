@@ -48,7 +48,7 @@ async def CreateUser(user: UserDb):
         raise HTTPException(status_code=400, detail="Password must be between 8 and 16 characters")
     elif (user.userRole == 0):
         user.password = ""
-
+    user.firstTimer = True
     # Check if username already exists
     existing_user = userCollection.find_one({"userName": user.userName})
     if existing_user:
