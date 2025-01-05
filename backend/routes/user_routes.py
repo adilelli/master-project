@@ -1,6 +1,6 @@
 from bson import ObjectId
-from fastapi import APIRouter, HTTPException, Path
-from dtos import UserDb
+from fastapi import APIRouter, HTTPException, Path, Query
+from dtos import Response, UserDb, UserDto
 from config import configUser
 
 # Initialize Router
@@ -55,18 +55,31 @@ async def CreateUser(user: UserDb):
         raise HTTPException(status_code=400, detail="Username already exists")
 
     result = userCollection.insert_one(user.model_dump())
-    return {"_id": str(result.inserted_id)}
+    user.pop("password", None)  # Remove password field if present
+    return Response(response="User created successfully", viewModel = user, status=True)
 
 #update masterlist
-@router.put("/{userName}", tags=["users"])
-async def UpdateUser(userName: str, user: UserDb):
-    user_data = user.model_dump(exclude_unset=True)
-    result = userCollection.update_one({"userName": userName}, {"$set": user_data})
+@router.put("/", tags=["users"])
+async def UpdateUser(userdto: UserDto):
+    existing_user = userCollection.find_one({"userName": userdto.userName})
+    if not existing_user:
+        raise HTTPException(status_code=400, detail="Invalid existing user")
+    if(userdto.userName):
+        existing_user['userName'] = userdto.userName
+    if(userdto.password):
+        existing_user['password'] = userdto.password
+    if userdto.userRole is not None:  # Check if userRole is provided (it can be 0 or a valid number)
+        existing_user['userRole'] = userdto.userRole
+
+    result = userCollection.update_one({"userName": userdto.userName}, {"$set": existing_user})
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="User not found")
 
-    user_data.pop("password", None)  # Remove password field if present
-    return {"message": "User updated successfully", "updatedFields": user_data}
+    # Remove sensitive information before returning
+    userdto_dict = userdto.model_dump()  # Convert the Pydantic model to a dictionary
+    userdto_dict.pop("password", None)  # Remove the 'password' field if it exists
+
+    return Response(response="User updated successfully", viewModel = userdto_dict, status=True)
 
 #delete masterlist
 @router.delete("/{userName}", tags=["users"])
@@ -74,4 +87,4 @@ async def Delete(userName: str):
     result = userCollection.delete_one({"userName": userName})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="User not found")
-    return {"message": "User deleted successfully"}
+    return Response(response="User deleted successfully", viewModel = None, status=True)

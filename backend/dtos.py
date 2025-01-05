@@ -1,3 +1,4 @@
+from enum import Enum
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import datetime
@@ -48,3 +49,17 @@ class Response(BaseModel):
     response: str
     viewModel: object
     status: bool
+
+class UserDto(BaseModel):
+    userName: str
+    password: Optional[str] = Field(None, min_length=8, max_length=16, pattern="^[a-zA-Z0-9]*$")  # Alphanumeric 8-16
+    userRole: Optional[int] = None  # student=0, OA=1, PC=2, AP=3, P=4
+
+
+# Define the user roles with Enum for better readability
+class UserRole(Enum):
+    student = 0
+    OA = 1
+    PC = 2
+    AP = 3
+    P = 4
