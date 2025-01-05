@@ -46,8 +46,8 @@ const ApiService = {
     return handleRequest(config);
   },
 
-  updateUser: async (userName, updateData) => {
-    const config = { method: 'put', url: `/user/${userName}`, data: updateData };
+  updateUser: async (updateData) => {
+    const config = { method: 'put', url: `/user`, data: updateData };
     return handleRequest(config);
   },
 

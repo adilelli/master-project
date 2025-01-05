@@ -9,6 +9,7 @@ import {
   Box 
 } from '@mui/material';
 import { validatePassword } from '../utils/validation';
+import ApiService from '../controller/apiservice';
 
 function PasswordReset({ onBack }) {
   const [newPassword, setNewPassword] = useState('');
@@ -16,7 +17,7 @@ function PasswordReset({ onBack }) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validatePassword(newPassword)) {
       setError('Password must be 8-16 characters long and contain both letters and numbers.');
@@ -27,6 +28,14 @@ function PasswordReset({ onBack }) {
       return;
     }
     // Here you would typically call an API to reset the password
+    const updateUserData = {
+      "userName":localStorage.getItem('userName'),
+      "password": newPassword
+    };
+
+    console.log(updateUserData);
+
+    const response = await ApiService.updateUser(updateUserData);
     setSuccess(true);
   };
 

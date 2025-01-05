@@ -12,6 +12,7 @@ import { validatePassword } from '../utils/validation';
 import PasswordReset from './PasswordReset';
 import FirstTimeLogin from './FirstTimeLogin';
 import ApiService from '../controller/apiservice';
+import { jwtDecode } from "jwt-decode";
 
 function LoginPage() {
   const [id, setId] = useState('');
@@ -26,7 +27,11 @@ function LoginPage() {
     e.preventDefault();
     
     const login = await ApiService.login(id, password)
+    const decoded = jwtDecode(login.access_token);
     localStorage.setItem('accessToken', login.access_token);
+    localStorage.setItem('userName', id);
+    localStorage.setItem('userRole', decoded.role);
+    localStorage.setItem('exp', decoded.exp);
 
     const accessToken = localStorage.getItem('accessToken');
     alert(accessToken);
