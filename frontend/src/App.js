@@ -1,24 +1,23 @@
-import logo from './logo.svg';
-import './App.css';
+
+import LoginPage from './boundary/loginpage';
+import { BrowserRouter, Route, Routes } from "react-router-dom"
+import OfficeAssistantDashboard from './boundary/OfficeAssistantDashboard';
+import StaffList from './boundary/StaffList';
+import StudentList from './boundary/StudentList';
+import { DashboardProvider } from './context/DashboardContext';
 
 function App() {
   return (
-    <div className="App bg-white">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p className="text-green-700">
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Hi
-        </a>
-      </header>
-    </div>
+    <DashboardProvider> 
+    <BrowserRouter>
+      <Routes>
+        <Route path='/' element={<LoginPage />} />
+        <Route path='/dashboard' element={<OfficeAssistantDashboard />} />
+        <Route path='/stafflist' element={<StaffList />} />
+        <Route path='/studentlist' element={<StudentList />} />
+      </Routes>
+    </BrowserRouter>
+    </DashboardProvider>
   );
 }
 

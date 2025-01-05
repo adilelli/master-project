@@ -26,6 +26,7 @@ class evaluationDb(BaseModel):
     examinerId3: Optional[str] = None  # FK
     researchTitle: Optional[str] = None
     chairpersonId: Optional[str] = None  # FK AP  P if S/C==P, 4 session
+    lockStatus: Optional[bool] = False
 
     class Config:
         orm_mode = True
@@ -38,6 +39,10 @@ class examinerDto(BaseModel):
     examinerId1: Optional[str] = None  # FK AP  P if S/C==P
     examinerId2: Optional[str] = None  # FK
     examinerId3: Optional[str] = None  # FK
+
+class chairpersonDto(BaseModel):
+    semester: str      
+    chairpersonId: str  # FK AP  P if S/C==P, 4 session
 
 class Response(BaseModel):
     response: str
