@@ -11,6 +11,7 @@ import {
 import { validatePassword } from '../utils/validation';
 import PasswordReset from './PasswordReset';
 import FirstTimeLogin from './FirstTimeLogin';
+import ApiService from '../controller/apiservice';
 
 function LoginPage() {
   const [id, setId] = useState('');
@@ -19,12 +20,18 @@ function LoginPage() {
   const [error, setError] = useState('');
   const [showPasswordReset, setShowPasswordReset] = useState(false);
   const [isFirstTimeLogin, setIsFirstTimeLogin] = useState(false);
+  
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
+    const login = await ApiService.login(id, password)
+    localStorage.setItem('accessToken', login.access_token);
+
+    const accessToken = localStorage.getItem('accessToken');
+    alert(accessToken);
     // Simulating login check. In a real app, this would be an API call.
-    if (id === 'staff123' && password === 'password123') {
+    if (login.access_token) {
       setIsFirstTimeLogin(true);
     } else {
       setAttempts(attempts - 1);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Table, 
   TableBody, 
@@ -20,6 +20,7 @@ import {
 } from '@mui/material';
 import { DEPARTMENTS, FACULTIES } from '../utils/constants';
 import { useDashboard } from '../context/DashboardContext';
+import ApiService from '../controller/apiservice';
 
 function StaffList() {
   const { staff, setStaff } = useDashboard();
@@ -31,6 +32,19 @@ function StaffList() {
     faculty: '',
     university: 'Universiti Teknologi Malaysia'
   });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const staffList = await ApiService.viewStaff();
+        console.log('Staff List:', staffList);
+      } catch (error) {
+        console.error('Error fetching staff:', error);
+      }
+    };
+  
+    fetchData();
+  }, []);
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => {
