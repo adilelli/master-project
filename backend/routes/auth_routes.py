@@ -27,7 +27,7 @@ async def login(user: LoginDto):
     if not user_data:
         raise HTTPException(status_code=401, detail = "Invalid username or password")
     
-    if user_data["attempt"] > 3:
+    if user_data["attempt"] is not None and user_data["attempt"] > 3:
         raise HTTPException(status_code=403, detail = "You have reached maximum attempts of 3")
     
     if user.password != user_data["password"]:

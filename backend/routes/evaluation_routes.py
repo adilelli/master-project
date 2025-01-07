@@ -147,7 +147,7 @@ async def AddChairPerson(evaluationId: str, chairpersondto: chairpersonDto, curr
     evaluation_count = evalCollection.count_documents(query)
 
     if role != 2 :
-        raise HTTPException(status_code=403, detail="Only chairperson can assign chairperson")
+        raise HTTPException(status_code=403, detail="Only coordinator can assign chairperson")
     if evaluation_count > 4:
         raise HTTPException(status_code=400, detail="Chairperson cannot chair more than 4 sessions per semester")
     

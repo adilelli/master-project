@@ -55,8 +55,9 @@ async def CreateUser(user: UserDb):
         raise HTTPException(status_code=400, detail="Username already exists")
 
     result = userCollection.insert_one(user.model_dump())
-    user.pop("password", None)  # Remove password field if present
-    return Response(response="User created successfully", viewModel = user, status=True)
+    user_dict = user.model_dump
+    user_dict.pop("password", None)  # Remove password field if present
+    return Response(response="User created successfully", viewModel = user_dict, status=True)
 
 #update masterlist
 @router.put("/", tags=["users"])
