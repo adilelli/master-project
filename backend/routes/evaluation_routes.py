@@ -2,7 +2,7 @@ from typing import Any, Tuple
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from bson.objectid import ObjectId
 from services.auth_services import get_current_user
-from dtos import chairpersonDto, evaluationDb, Response, examinerDto, supervisorDto
+from dtos import chairpersonDto, evaluationDb, ResponseDto, evaluationDto, examinerDto, supervisorDto, map_evaluation
 from config import configEvaluation, configUser
 
 # Initialize Router
@@ -21,15 +21,16 @@ userCollection = configUser()
 # +viewChairPerson()/
 
 @router.post("/", tags=["evaluation"], status_code=201)
-async def PrepareEvaluation(evaluation: evaluationDb, current_user: Tuple[str, Any] = Depends(get_current_user)):
+async def PrepareEvaluation(evaluationdto: evaluationDto, current_user: Tuple[str, Any] = Depends(get_current_user)):
     username, role = current_user
     if(role != 1):
         raise HTTPException(status_code=403, detail = "Only Office Assistant can add evaluation")
     
+    evaluation = map_evaluation(evaluationdto)
     result = evalCollection.insert_one(evaluation.model_dump(exclude_none=True))
     return {"_id": str(result.inserted_id), "evaluation": evaluation}
 
-@router.put("/supervisor/{evaluationId}", response_model=Response, tags=["evaluation"])
+@router.put("/supervisor/{evaluationId}", response_model=ResponseDto, tags=["evaluation"])
 async def add_update_supervisor(
     evaluationId: str,
     supervisordto: supervisorDto,
@@ -69,9 +70,9 @@ async def add_update_supervisor(
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Failed to update evaluation.")
 
-    return Response(response="Evaluation updated successfully", viewModel = eval, status=True)
+    return ResponseDto(response="Evaluation updated successfully", viewModel = eval, status=True)
 
-@router.put("/examiner/{evaluationId}", response_model=Response, tags=["evaluation"])
+@router.put("/examiner/{evaluationId}", response_model=ResponseDto, tags=["evaluation"])
 async def AddUpdateExaminer(evaluationId: str, examinerdto: examinerDto, current_user: Tuple[str, Any] = Depends(get_current_user)):
 
     username, role = current_user
@@ -117,9 +118,9 @@ async def AddUpdateExaminer(evaluationId: str, examinerdto: examinerDto, current
     result = evalCollection.update_one({"_id": ObjectId(evaluationId)}, {"$set": eval})
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Evaluation not found")
-    return Response(response="Evaluation updated successfully", viewModel = eval, status=True)
+    return ResponseDto(response="Evaluation updated successfully", viewModel = eval, status=True)
 
-@router.put("/chairperson/{evaluationId}", response_model=Response, tags=["evaluation"])
+@router.put("/chairperson/{evaluationId}", response_model=ResponseDto, tags=["evaluation"])
 async def AddChairPerson(evaluationId: str, chairpersondto: chairpersonDto, current_user: Tuple[str, Any] = Depends(get_current_user)):
 
     username, role = current_user
@@ -189,7 +190,7 @@ async def AddChairPerson(evaluationId: str, chairpersondto: chairpersonDto, curr
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Evaluation not found")
     
-    return Response(response="Evaluation updated successfully", viewModel=eval, status=True)
+    return ResponseDto(response="Evaluation updated successfully", viewModel=eval, status=True)
 
 
 @router.delete("/{evaluationId}", tags=["evaluation"])
@@ -204,7 +205,7 @@ async def delete_evaluation(evaluationId: str, current_user: Any = Depends(get_c
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Evaluation not found")
     
-    return Response(response="Evaluation deleted successfully", viewModel=None, status=True)
+    return ResponseDto(response="Evaluation deleted successfully", viewModel=None, status=True)
 
 
 @router.get("/", tags=["evaluation"])
@@ -259,7 +260,7 @@ async def ViewEvaluation(
     return result
 
 
-@router.put("/lock", response_model=Response, tags=["evaluation"])
+@router.put("/lock", response_model=ResponseDto, tags=["evaluation"])
 async def lock_nomination(
     evaluationId: str,
     lock: bool,
@@ -285,4 +286,4 @@ async def lock_nomination(
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Failed to update evaluation.")
 
-    return Response(response="Evaluation updated successfully", viewModel = eval, status=True)
+    return ResponseDto(response="Evaluation updated successfully", viewModel = eval, status=True)
