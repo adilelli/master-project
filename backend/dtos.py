@@ -32,6 +32,19 @@ class evaluationDb(BaseModel):
     class Config:
         orm_mode = True
 
+class evaluationDto(BaseModel):
+    studentId: str  # FK, Non-nullable
+    supervisorId: Optional[str] = None  # FK
+    coSupervisorId: Optional[str] = None  # FK
+    programType: Optional[str] = None
+    evaluationType: Optional[str] = None
+    semester: Optional[str] = None     
+
+# Function to map evaluationDto to evaluationDb
+def map_evaluation(dto: evaluationDto) -> evaluationDb:
+    # Convert dto to dict and pass it to evaluationDb
+    return evaluationDb(**dto.model_dump()) 
+
 class supervisorDto(BaseModel):
     supervisorId: Optional[str] = None  # FK
     coSupervisorId: Optional[str] = None  # FK
@@ -45,7 +58,7 @@ class chairpersonDto(BaseModel):
     semester: str      
     chairpersonId: str  # FK AP  P if S/C==P, 4 session
 
-class Response(BaseModel):
+class ResponseDto(BaseModel):
     response: str
     viewModel: object
     status: bool
@@ -63,3 +76,11 @@ class UserRole(Enum):
     PC = 2
     AP = 3
     P = 4
+
+class TokenDto(BaseModel):
+    access_token: str
+    token_type: str
+
+class LoginDto(BaseModel):
+    userName: str
+    password: str
