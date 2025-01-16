@@ -36,6 +36,7 @@ function StaffList() {
     sessionCount: 0,
     university: 'Universiti Teknologi Malaysia',
   });
+  const [selectedRole, setSelectedRole] = useState('');  // State for role filter
 
   useEffect(() => {
     const fetchData = async () => {
@@ -121,8 +122,28 @@ function StaffList() {
     }
   };
 
+  // Filter staff based on the selected role
+  const filteredStaff = selectedRole ? staff.filter((s) => s.role === selectedRole) : staff;
+
   return (
     <>
+      {/* Role Filter Dropdown */}
+      <FormControl fullWidth margin="dense">
+        <InputLabel>Filter by Role</InputLabel>
+        <Select
+          value={selectedRole}
+          onChange={(e) => setSelectedRole(e.target.value)}
+          label="Filter by Role"
+        >
+          <MenuItem value="">All</MenuItem>
+          <MenuItem value="Supervisor">Supervisor</MenuItem>
+          <MenuItem value="Examiner">Examiner</MenuItem>
+          <MenuItem value="Chairperson">Chairperson</MenuItem>
+          {/* Add more roles as needed */}
+        </Select>
+      </FormControl>
+
+      {/* Add Staff and Import Excel Buttons */}
       <Button variant="contained" color="primary" onClick={handleOpen}>
         Add Staff
       </Button>
@@ -140,6 +161,8 @@ function StaffList() {
           onChange={handleFileUpload}
         />
       </Button>
+
+      {/* Staff Table */}
       <TableContainer component={Paper} sx={{ mt: 2 }}>
         <Table>
           <TableHead>
@@ -156,8 +179,8 @@ function StaffList() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {staff?.length > 0 ? (
-              staff.map((staffMember) => (
+            {filteredStaff?.length > 0 ? (
+              filteredStaff.map((staffMember) => (
                 <TableRow key={staffMember.id}>
                   <TableCell>{staffMember.name}</TableCell>
                   <TableCell>{staffMember.title}</TableCell>
@@ -184,6 +207,7 @@ function StaffList() {
         </Table>
       </TableContainer>
 
+      {/* Staff Dialog (Add/Edit) */}
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>{currentStaff.id ? 'Edit Staff' : 'Add Staff'}</DialogTitle>
         <DialogContent>
@@ -260,18 +284,14 @@ function StaffList() {
               ))}
             </Select>
           </FormControl>
-          <TextField
-            margin="dense"
-            name="university"
-            label="University/Organization"
-            fullWidth
-            value={currentStaff.university}
-            onChange={handleInputChange}
-          />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleSubmit}>Save</Button>
+          <Button onClick={handleClose} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit} color="primary">
+            {currentStaff.id ? 'Update' : 'Add'}
+          </Button>
         </DialogActions>
       </Dialog>
     </>

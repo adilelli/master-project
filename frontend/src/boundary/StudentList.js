@@ -41,11 +41,41 @@ function StudentList() {
     lockNomination: false, // New property for Lock Nomination
   });
 
+  const [programData, setProgramData] = useState([]);
+  const [semesterData, setSemesterData] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(false);
+
   useEffect(() => {
     if (!staffList || staffList.length === 0) {
       console.warn('Staff list is not available yet.');
     }
-  }, [staffList]);
+
+    console.log('Students Data:', students);
+
+    // Extract unique semesters from students
+    const semesters = [...new Set(students.map(student => student.currentSemester))];
+    console.log('Semesters:', semesters);
+
+    // Group students by program
+    const programGroupedData = ['PhD', 'MPhil', 'DSE'].map(program => {
+      const programStudents = students.filter(s => s.program === program);
+      const semesterCount = semesters.map(semester => 
+        programStudents.filter(s => s.currentSemester === semester).length
+      );
+
+      return {
+        name: program,
+        ...semesters.reduce((acc, semester, index) => {
+          acc[semester] = semesterCount[index] || 0; // Default to 0 if no students for the semester
+          return acc;
+        }, {}),
+      };
+    });
+
+    setProgramData(programGroupedData);
+    setSemesterData(semesters);
+  }, [students, staffList]); // Re-run when students or staff list changes
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => {
@@ -77,9 +107,12 @@ function StudentList() {
   };
 
   const handleLockNominationChange = (id) => {
-    setStudents(students.map(student => 
+    const updatedStudents = students.map(student => 
       student.id === id ? { ...student, lockNomination: !student.lockNomination } : student
-    ));
+    );
+    
+    console.log(updatedStudents); // Log to check if lockNomination is toggled
+    setStudents(updatedStudents);
   };
 
   const handleSubmit = () => {
@@ -105,17 +138,11 @@ function StudentList() {
     setStudents(students.filter(student => student.id !== id));
   };
 
-  const getStaffByRole = (role) => {
-    if (!staffList || staffList.length === 0) {
-      return [];
-    }
-    return staffList.filter(staff => staff.role === role);
-  };
-
   // Function to import Excel data
   const handleExcelUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      setLoading(true); // Start loading
       const reader = new FileReader();
       reader.onload = (event) => {
         const binaryStr = event.target.result;
@@ -142,10 +169,19 @@ function StudentList() {
         }));
 
         setStudents([...students, ...studentsFromExcel]);
+        setLoading(false); // End loading
       };
       reader.readAsBinaryString(file);
     }
   };
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const filteredStudents = students.filter(student => 
+    student.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <>
@@ -158,6 +194,14 @@ function StudentList() {
         onChange={handleExcelUpload}
         sx={{ mt: 2 }}
       />
+      <Input
+        value={searchTerm}
+        onChange={handleSearchChange}
+        placeholder="Search for students"
+        sx={{ mt: 2 }}
+      />
+      
+      {loading && <div>Loading...</div>} {/* Show loading text while loading */}
   
       <TableContainer component={Paper} sx={{ mt: 2 }}>
         <Table>
@@ -179,7 +223,7 @@ function StudentList() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {students.map((student) => (
+            {filteredStudents.map((student) => (
               <TableRow key={student.id}>
                 <TableCell>{student.name}</TableCell>
                 <TableCell>{student.program}</TableCell>
@@ -240,10 +284,13 @@ function StudentList() {
               onChange={handleInputChange}
             >
               {PROGRAMS.map((program) => (
-                <MenuItem key={program} value={program}>{program}</MenuItem>
+                <MenuItem key={program} value={program}>
+                  {program}
+                </MenuItem>
               ))}
             </Select>
           </FormControl>
+
           <FormControl fullWidth margin="dense">
             <InputLabel>Evaluation Type</InputLabel>
             <Select
@@ -252,10 +299,13 @@ function StudentList() {
               onChange={handleInputChange}
             >
               {EVALUATION_TYPES.map((type) => (
-                <MenuItem key={type} value={type}>{type}</MenuItem>
+                <MenuItem key={type} value={type}>
+                  {type}
+                </MenuItem>
               ))}
             </Select>
           </FormControl>
+
           <TextField
             margin="dense"
             name="currentSemester"
@@ -264,10 +314,88 @@ function StudentList() {
             value={currentStudent.currentSemester}
             onChange={handleInputChange}
           />
+  
+          <TextField
+            margin="dense"
+            name="mainSupervisor"
+            label="Main Supervisor"
+            fullWidth
+            value={currentStudent.mainSupervisor}
+            onChange={handleInputChange}
+          />
+          <TextField
+            margin="dense"
+            name="coSupervisor"
+            label="Co-Supervisor"
+            fullWidth
+            value={currentStudent.coSupervisor}
+            onChange={handleInputChange}
+          />
+          <TextField
+            margin="dense"
+            name="examiner1"
+            label="Examiner 1"
+            fullWidth
+            value={currentStudent.examiner1}
+            onChange={handleInputChange}
+          />
+          <TextField
+            margin="dense"
+            name="examiner2"
+            label="Examiner 2"
+            fullWidth
+            value={currentStudent.examiner2}
+            onChange={handleInputChange}
+          />
+          <TextField
+            margin="dense"
+            name="examiner3"
+            label="Examiner 3"
+            fullWidth
+            value={currentStudent.examiner3}
+            onChange={handleInputChange}
+          />
+          <TextField
+            margin="dense"
+            name="chairperson"
+            label="Chairperson"
+            fullWidth
+            value={currentStudent.chairperson}
+            onChange={handleInputChange}
+          />
+  
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Postpone FSE</InputLabel>
+            <Select
+              name="postponeFSE"
+              value={currentStudent.postponeFSE}
+              onChange={handleInputChange}
+            >
+              <MenuItem value={false}>No</MenuItem>
+              <MenuItem value={true}>Yes</MenuItem>
+            </Select>
+          </FormControl>
+  
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Lock Nomination</InputLabel>
+            <Select
+              name="lockNomination"
+              value={currentStudent.lockNomination}
+              onChange={handleInputChange}
+            >
+              <MenuItem value={false}>No</MenuItem>
+              <MenuItem value={true}>Yes</MenuItem>
+            </Select>
+          </FormControl>
         </DialogContent>
+  
         <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleSubmit}>Save</Button>
+          <Button onClick={handleClose} color="secondary">
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit} color="primary">
+            Submit
+          </Button>
         </DialogActions>
       </Dialog>
     </>
