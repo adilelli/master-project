@@ -1,7 +1,6 @@
-/backend/newenv
-/newenv
-/backend/myenv
-/myenv
+node_modules
+/backend/utm
+/utm
 
 # Environment Variables
 .env

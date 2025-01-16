@@ -1,71 +1,95 @@
-import React, { useState } from 'react';
-import { 
-  Container, 
-  Typography, 
-  Box, 
-  Tabs, 
-  Tab,
-  Grid,
-  Paper
-} from '@mui/material';
-import StudentList from './StudentList';
-import StaffList from './StaffList';
-import { DashboardProvider, useDashboard } from '../context/DashboardContext';
+// src/boundary/Dashboard.js
+
+import React, { useState, useEffect } from 'react';
+import { Paper, Button, Grid, Typography, Container, AppBar, Toolbar, IconButton } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import { Book } from '@mui/icons-material';  // Book icon import
+import Chart from './Chart';  // Assuming Chart component is created as discussed
+import StudentList from './StudentList';  // Assuming StudentList component is already created
+import StaffList from './StaffList'; // Importing StaffList component
+import { useDashboard } from '../context/DashboardContext'; // Assuming context is set
 
 function Dashboard() {
-  const { students, staff } = useDashboard();
+  const theme = useTheme();
+  const { students, staffList } = useDashboard(); // Get staffList and students from context
+
+  // Prepare program data for the chart
+  const programs = Array.from(new Set(students.map(student => student.program)));  // Unique programs
+  const semesterData = Array.from(new Set(students.map(student => student.currentSemester)));  // Unique semesters
   
-  return (
-    <Grid container spacing={2}>
-      <Grid item xs={12} md={6}>
-        <Paper elevation={3} sx={{ p: 2 }}>
-          <Typography variant="h6" gutterBottom>Students Overview</Typography>
-          <Typography>Total Students: {students.length}</Typography>
-          <Typography>PhD Students: {students.filter(s => s.program === 'PhD').length}</Typography>
-          <Typography>MPhil Students: {students.filter(s => s.program === 'MPhil').length}</Typography>
-          <Typography>DSE Students: {students.filter(s => s.program === 'DSE').length}</Typography>
-        </Paper>
-      </Grid>
-      <Grid item xs={12} md={6}>
-        <Paper elevation={3} sx={{ p: 2 }}>
-          <Typography variant="h6" gutterBottom>Staff Overview</Typography>
-          <Typography>Total Staff: {staff.length}</Typography>
-          <Typography>Main Supervisors: {staff.filter(s => s.role === 'Main Supervisor').length}</Typography>
-          <Typography>Co-Supervisors: {staff.filter(s => s.role === 'Co-Supervisor').length}</Typography>
-          <Typography>Examiners: {staff.filter(s => s.role === 'Examiner').length}</Typography>
-          <Typography>Chairpersons: {staff.filter(s => s.role === 'Chairperson').length}</Typography>
-        </Paper>
-      </Grid>
-    </Grid>
-  );
-}
+  const programData = programs.map((program) => {
+    const programStudents = students.filter(student => student.program === program);
+    const semesterCounts = semesterData.reduce((acc, semester) => {
+      acc[semester] = programStudents.filter(student => student.currentSemester === semester).length;
+      return acc;
+    }, {});
+    return { name: program, ...semesterCounts };
+  });
 
-function OfficeAssistantDashboard() {
-  const [activeTab, setActiveTab] = useState(0);
-
-  const handleTabChange = (event, newValue) => {
-    setActiveTab(newValue);
+  // Get the staff by role
+  const getStaffByRole = (role) => {
+    if (!staffList || staffList.length === 0) {
+      return [];
+    }
+    return staffList.filter(staff => staff.role === role);
   };
 
+  useEffect(() => {
+    if (!staffList || staffList.length === 0) {
+      console.warn('Staff list is not available yet.');
+    }
+  }, [staffList]);
+
   return (
-    <DashboardProvider>
-      <Container maxWidth="lg">
-        <Typography variant="h4" component="h1" gutterBottom>
-          Office Assistant Dashboard
-        </Typography>
-        <Dashboard />
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3, mt: 3 }}>
-          <Tabs value={activeTab} onChange={handleTabChange}>
-            <Tab label="Student List" />
-            <Tab label="Staff List" />
-          </Tabs>
-        </Box>
-        {activeTab === 0 && <StudentList />}
-        {activeTab === 1 && <StaffList />}
-      </Container>
-    </DashboardProvider>
+    <Container maxWidth="lg">
+      {/* AppBar Header with Title and Icon */}
+      <AppBar position="sticky" sx={{ bgcolor: theme.palette.primary.main }}>
+        <Toolbar>
+          <IconButton edge="start" color="inherit" aria-label="menu" sx={{ mr: 2 }}>
+            <Book /> {/* Displaying Book icon */}
+          </IconButton>
+          <Typography variant="h5" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
+            FIRST STAGE EVALUATION
+          </Typography>
+        </Toolbar>
+      </AppBar>
+
+      <Grid container spacing={3} sx={{ mt: 3 }}>
+        {/* Student Overview Graph */}
+        <Grid item xs={12}>
+          <Paper elevation={3} sx={{ padding: 3, backgroundColor: theme.palette.background.paper }}>
+            <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', color: theme.palette.primary.dark }}>
+              Student Overview
+            </Typography>
+            <Chart programData={programData} semesterData={semesterData} theme={theme} />
+          </Paper>
+        </Grid>
+
+        {/* Student List and Staff List Side by Side */}
+        <Grid container spacing={3}>
+          {/* Student List */}
+          <Grid item xs={12} sm={6}>
+            <Paper elevation={3} sx={{ padding: 3, backgroundColor: theme.palette.background.paper }}>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
+                Student List
+              </Typography>
+              <StudentList /> {/* Assuming the StudentList component already handles student details and editing */}
+            </Paper>
+          </Grid>
+
+          {/* Staff List */}
+          <Grid item xs={12} sm={6}>
+            <Paper elevation={3} sx={{ padding: 3, backgroundColor: theme.palette.background.paper }}>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
+                Staff List
+              </Typography>
+              <StaffList /> {/* StaffList component integrated */}
+            </Paper>
+          </Grid>
+        </Grid>
+      </Grid>
+    </Container>
   );
 }
 
-export default OfficeAssistantDashboard;
-
+export default Dashboard;
