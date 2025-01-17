@@ -9,7 +9,7 @@ const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
-    Authorization: `Bearer ${AUTHORIZATION_TOKEN}`
+    Authorization: `Bearer ${localStorage.getItem('accessToken')}`
   },
   maxBodyLength: Infinity,
 });
