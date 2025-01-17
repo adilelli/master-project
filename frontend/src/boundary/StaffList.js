@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import * as XLSX from 'xlsx';
 import { 
   Table, 
@@ -17,67 +17,59 @@ import {
   Select,
   MenuItem,
   FormControl,
-  InputLabel
+  InputLabel,
+  Stack,
+  Typography,
+  Alert,
+  Snackbar
 } from '@mui/material';
-import { DEPARTMENTS, FACULTIES } from '../utils/constants';
+import { Download, Upload } from 'lucide-react';
 import { useDashboard } from '../context/DashboardContext';
-import ApiService from '../controller/apiservice';
 
 function StaffList() {
-  const { staff, setStaff } = useDashboard();
+  const { staff = [], setStaff } = useDashboard();
   const [open, setOpen] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const fileInputRef = useRef(null);
   const [currentStaff, setCurrentStaff] = useState({
+    id: '',
     name: '',
-    title: 'Dr',
+    title: '',
     role: '',
     level: '',
     department: '',
     faculty: '',
     sessionCount: 0,
-    university: 'Universiti Teknologi Malaysia',
+    university: ''
   });
-  const [selectedRole, setSelectedRole] = useState('');  // State for role filter
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const staffList = await ApiService.viewStaff();
-        console.log('Staff List:', staffList);
-        setStaff(staffList || []); // Ensure staffList is always an array
-      } catch (error) {
-        console.error('Error fetching staff:', error);
-      }
-    };
-
-    fetchData();
-  }, [setStaff]);
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => {
     setOpen(false);
     setCurrentStaff({
+      id: '',
       name: '',
-      title: 'Dr',
+      title: '',
       role: '',
       level: '',
       department: '',
       faculty: '',
       sessionCount: 0,
-      university: 'Universiti Teknologi Malaysia',
+      university: ''
     });
   };
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setCurrentStaff({ ...currentStaff, [name]: value });
+    setCurrentStaff({ ...currentStaff, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = () => {
     if (currentStaff.id) {
-      setStaff(staff.map((s) => (s.id === currentStaff.id ? currentStaff : s)));
+      setStaff(staff.map(s => 
+        s.id === currentStaff.id ? currentStaff : s
+      ));
     } else {
-      // Add to the top of the array to ensure new data appears at the top of the table
-      setStaff([currentStaff, ...staff]);
+      setStaff([...staff, { ...currentStaff, id: Date.now() }]);
     }
     handleClose();
   };
@@ -88,82 +80,108 @@ function StaffList() {
   };
 
   const handleDelete = (id) => {
-    setStaff(staff.filter((s) => s.id !== id));
+    setStaff(staff.filter(s => s.id !== id));
   };
 
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const binaryStr = event.target.result;
-        const workbook = XLSX.read(binaryStr, { type: 'binary' });
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
-        const data = XLSX.utils.sheet_to_json(sheet);
+  const handleDownloadExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(staff.map(staffMember => ({
+      'Name': staffMember.name,
+      'Title': staffMember.title,
+      'Role': staffMember.role,
+      'Level': staffMember.level,
+      'Department': staffMember.department,
+      'Faculty': staffMember.faculty,
+      'Session Count': staffMember.sessionCount,
+      'University': staffMember.university
+    })));
+    
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Staff');
+    XLSX.writeFile(workbook, 'staff_list.xlsx');
+  };
 
-        // Process Excel data and add to staff list
-        const importedStaff = data.map((row, index) => ({
-          id: Date.now() + index, // Generate unique IDs
-          name: row.Name || '',
-          title: row.Title || 'Dr', // Default to 'Dr' if not provided
-          role: row.Role || '',
-          level: row.Level || '',
+  const handleImportExcel = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+        const formattedData = jsonData.map((row, index) => ({
+          id: Date.now() + index,
+          name: row['Name'] || '',
+          title: row['Title'] || '',
+          role: row['Role'] || '',
+          level: row['Level'] || '',
+          department: row['Department'] || '',
+          faculty: row['Faculty'] || '',
           sessionCount: row['Session Count'] || 0,
-          department: row.Department || '',
-          faculty: row.Faculty || '',
-          university: row.University || 'Universiti Teknologi Malaysia',
+          university: row['University'] || ''
         }));
 
-        // Add the imported staff data to the top of the list
-        setStaff([...importedStaff, ...staff]); // Ensures new data goes to the top
-      };
-      reader.readAsBinaryString(file);
-    }
+        setStaff(prevStaff => [...prevStaff, ...formattedData]);
+        setSnackbar({
+          open: true,
+          message: `Successfully imported ${formattedData.length} staff members`,
+          severity: 'success'
+        });
+      } catch (error) {
+        console.error('Error importing Excel file:', error);
+        setSnackbar({
+          open: true,
+          message: 'Error importing Excel file. Please check the file format.',
+          severity: 'error'
+        });
+      }
+    };
+    reader.readAsArrayBuffer(file);
+    // Reset file input
+    event.target.value = '';
   };
 
-  // Filter staff based on the selected role
-  const filteredStaff = selectedRole ? staff.filter((s) => s.role === selectedRole) : staff;
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleSnackbarClose = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
 
   return (
     <>
-      {/* Role Filter Dropdown */}
-      <FormControl fullWidth margin="dense">
-        <InputLabel>Filter by Role</InputLabel>
-        <Select
-          value={selectedRole}
-          onChange={(e) => setSelectedRole(e.target.value)}
-          label="Filter by Role"
+      <Stack direction="row" spacing={2} mb={2}>
+        <Button variant="contained" color="primary" onClick={handleOpen}>
+          Add Staff
+        </Button>
+        <Button 
+          variant="outlined" 
+          startIcon={<Upload />}
+          onClick={handleImportClick}
         >
-          <MenuItem value="">All</MenuItem>
-          <MenuItem value="Supervisor">Supervisor</MenuItem>
-          <MenuItem value="Examiner">Examiner</MenuItem>
-          <MenuItem value="Chairperson">Chairperson</MenuItem>
-          {/* Add more roles as needed */}
-        </Select>
-      </FormControl>
-
-      {/* Add Staff and Import Excel Buttons */}
-      <Button variant="contained" color="primary" onClick={handleOpen}>
-        Add Staff
-      </Button>
-      <Button
-        variant="contained"
-        color="secondary"
-        component="label"
-        sx={{ ml: 2 }}
-      >
-        Import Excel
+          Import Excel
+        </Button>
         <input
           type="file"
-          accept=".xlsx, .xls"
+          ref={fileInputRef}
           hidden
-          onChange={handleFileUpload}
+          accept=".xlsx, .xls"
+          onChange={handleImportExcel}
         />
-      </Button>
+        <Button 
+          variant="outlined" 
+          startIcon={<Download />}
+          onClick={handleDownloadExcel}
+        >
+          Download Excel
+        </Button>
+      </Stack>
 
-      {/* Staff Table */}
-      <TableContainer component={Paper} sx={{ mt: 2 }}>
+      <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
@@ -171,131 +189,123 @@ function StaffList() {
               <TableCell>Title</TableCell>
               <TableCell>Role</TableCell>
               <TableCell>Level</TableCell>
-              <TableCell>Session Count</TableCell>
               <TableCell>Department</TableCell>
               <TableCell>Faculty</TableCell>
+              <TableCell>Session Count</TableCell>
               <TableCell>University</TableCell>
               <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredStaff?.length > 0 ? (
-              filteredStaff.map((staffMember) => (
-                <TableRow key={staffMember.id}>
-                  <TableCell>{staffMember.name}</TableCell>
-                  <TableCell>{staffMember.title}</TableCell>
-                  <TableCell>{staffMember.role}</TableCell>
-                  <TableCell>{staffMember.level}</TableCell>
-                  <TableCell>{staffMember.sessionCount}</TableCell>
-                  <TableCell>{staffMember.department}</TableCell>
-                  <TableCell>{staffMember.faculty}</TableCell>
-                  <TableCell>{staffMember.university}</TableCell>
-                  <TableCell>
-                    <Button onClick={() => handleEdit(staffMember)}>Edit</Button>
-                    <Button onClick={() => handleDelete(staffMember.id)}>Delete</Button>
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={9} align="center">
-                  No staff data available.
+            {staff.map((staffMember) => (
+              <TableRow key={staffMember.id}>
+                <TableCell>{staffMember.name}</TableCell>
+                <TableCell>{staffMember.title}</TableCell>
+                <TableCell>{staffMember.role}</TableCell>
+                <TableCell>{staffMember.level}</TableCell>
+                <TableCell>{staffMember.department}</TableCell>
+                <TableCell>{staffMember.faculty}</TableCell>
+                <TableCell>{staffMember.sessionCount}</TableCell>
+                <TableCell>{staffMember.university}</TableCell>
+                <TableCell>
+                  <Button onClick={() => handleEdit(staffMember)}>Edit</Button>
+                  <Button onClick={() => handleDelete(staffMember.id)}>Delete</Button>
                 </TableCell>
               </TableRow>
-            )}
+            ))}
           </TableBody>
         </Table>
       </TableContainer>
 
-      {/* Staff Dialog (Add/Edit) */}
-      <Dialog open={open} onClose={handleClose}>
+      <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
         <DialogTitle>{currentStaff.id ? 'Edit Staff' : 'Add Staff'}</DialogTitle>
         <DialogContent>
           <TextField
-            autoFocus
-            margin="dense"
             name="name"
-            label="Staff Name"
+            label="Name"
             fullWidth
             value={currentStaff.name}
             onChange={handleInputChange}
+            margin="normal"
           />
           <TextField
-            margin="dense"
             name="title"
             label="Title"
             fullWidth
             value={currentStaff.title}
-            disabled
+            onChange={handleInputChange}
+            margin="normal"
           />
-          <FormControl fullWidth margin="dense">
-            <InputLabel>Role</InputLabel>
-            <Select
-              name="role"
-              value={currentStaff.role}
-              onChange={handleInputChange}
-            >
-              <MenuItem value="Supervisor">Supervisor</MenuItem>
-              <MenuItem value="Examiner">Examiner</MenuItem>
-              <MenuItem value="Chairperson">Chairperson</MenuItem>
-            </Select>
-          </FormControl>
-          <FormControl fullWidth margin="dense">
-            <InputLabel>Level</InputLabel>
-            <Select
-              name="level"
-              value={currentStaff.level}
-              onChange={handleInputChange}
-            >
-              <MenuItem value="Professor">Professor</MenuItem>
-              <MenuItem value="Associate Professor">Associate Professor</MenuItem>
-            </Select>
-          </FormControl>
           <TextField
-            margin="dense"
+            name="role"
+            label="Role"
+            fullWidth
+            value={currentStaff.role}
+            onChange={handleInputChange}
+            margin="normal"
+          />
+          <TextField
+            name="level"
+            label="Level"
+            fullWidth
+            value={currentStaff.level}
+            onChange={handleInputChange}
+            margin="normal"
+          />
+          <TextField
+            name="department"
+            label="Department"
+            fullWidth
+            value={currentStaff.department}
+            onChange={handleInputChange}
+            margin="normal"
+          />
+          <TextField
+            name="faculty"
+            label="Faculty"
+            fullWidth
+            value={currentStaff.faculty}
+            onChange={handleInputChange}
+            margin="normal"
+          />
+          <TextField
             name="sessionCount"
             label="Session Count"
             type="number"
             fullWidth
             value={currentStaff.sessionCount}
             onChange={handleInputChange}
+            margin="normal"
           />
-          <FormControl fullWidth margin="dense">
-            <InputLabel>Department</InputLabel>
-            <Select
-              name="department"
-              value={currentStaff.department}
-              onChange={handleInputChange}
-            >
-              {DEPARTMENTS.map((dept) => (
-                <MenuItem key={dept} value={dept}>{dept}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl fullWidth margin="dense">
-            <InputLabel>Faculty</InputLabel>
-            <Select
-              name="faculty"
-              value={currentStaff.faculty}
-              onChange={handleInputChange}
-            >
-              {FACULTIES.map((faculty) => (
-                <MenuItem key={faculty} value={faculty}>{faculty}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <TextField
+            name="university"
+            label="University"
+            fullWidth
+            value={currentStaff.university}
+            onChange={handleInputChange}
+            margin="normal"
+          />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit} color="primary">
-            {currentStaff.id ? 'Update' : 'Add'}
+          <Button onClick={handleClose}>Cancel</Button>
+          <Button onClick={handleSubmit} variant="contained" color="primary">
+            {currentStaff.id ? 'Save' : 'Add'}
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+      >
+        <Alert onClose={handleSnackbarClose} severity={snackbar.severity}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </>
   );
 }
 
 export default StaffList;
+
