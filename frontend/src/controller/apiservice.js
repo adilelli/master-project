@@ -9,7 +9,7 @@ const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
-    Authorization: AUTHORIZATION_TOKEN,
+    Authorization: `Bearer ${localStorage.getItem('accessToken')}`
   },
   maxBodyLength: Infinity,
 });
@@ -48,6 +48,7 @@ const ApiService = {
 
   updateUser: async (updateData) => {
     const config = { method: 'put', url: `/user`, data: updateData };
+    console.log(AUTHORIZATION_TOKEN)
     return handleRequest(config);
   },
 
