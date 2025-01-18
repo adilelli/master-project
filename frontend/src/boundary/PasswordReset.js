@@ -8,35 +8,21 @@ import {
   Alert, 
   Box 
 } from '@mui/material';
-import { validatePassword } from '../utils/validation';
 import ApiService from '../controller/apiservice';
 
 function PasswordReset({ onBack }) {
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validatePassword(newPassword)) {
-      setError('Password must be 8-16 characters long and contain both letters and numbers.');
-      return;
+    try {
+      await ApiService.initiatePasswordReset(email);
+      setSuccess(true);
+    } catch (error) {
+      setError('Failed to initiate password reset. Please try again.');
     }
-    if (newPassword !== confirmPassword) {
-      setError('Passwords do not match.');
-      return;
-    }
-    // Here you would typically call an API to reset the password
-    const updateUserData = {
-      "userName":localStorage.getItem('userName'),
-      "password": newPassword
-    };
-
-    console.log(updateUserData);
-
-    const response = await ApiService.updateUser(updateUserData);
-    setSuccess(true);
   };
 
   if (success) {
@@ -44,7 +30,7 @@ function PasswordReset({ onBack }) {
       <Card sx={{ maxWidth: 400, width: '100%' }}>
         <CardContent>
           <Alert severity="success">
-            Your password has been reset successfully.
+            A password reset link has been sent to your email. Please check your inbox and follow the instructions.
           </Alert>
           <Button 
             onClick={onBack} 
@@ -69,19 +55,10 @@ function PasswordReset({ onBack }) {
           <TextField
             fullWidth
             margin="normal"
-            label="New Password"
-            type="password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            required
-          />
-          <TextField
-            fullWidth
-            margin="normal"
-            label="Confirm New Password"
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
+            label="Email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
           />
           {error && (
@@ -96,7 +73,7 @@ function PasswordReset({ onBack }) {
             color="primary"
             sx={{ mt: 3, mb: 2 }}
           >
-            Reset Password
+            Send Reset Link
           </Button>
         </form>
         <Button

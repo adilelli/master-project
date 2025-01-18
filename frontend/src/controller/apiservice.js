@@ -102,6 +102,22 @@ const ApiService = {
     };
     return handleRequest(config);
   },
+
+  initiatePasswordReset: async (email) => {
+    const config = { method: 'post', url: '/auth/reset-password', data: { email } };
+    return handleRequest(config);
+  },
+
+  verifyResetToken: async (token) => {
+    const config = { method: 'get', url: `/auth/reset-password/${token}` };
+    return handleRequest(config);
+  },
+
+  resetPassword: async (token, newPassword) => {
+    const config = { method: 'post', url: `/auth/reset-password/${token}`, data: { newPassword } };
+    return handleRequest(config);
+  },
 };
 
 export default ApiService;
+
