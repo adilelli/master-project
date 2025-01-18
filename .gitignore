@@ -4,6 +4,8 @@ node_modules
 /utm
 /backend/myenv
 /myenv
+node_modules
+node_modules/
 
 # Environment Variables
 .env
