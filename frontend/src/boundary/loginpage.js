@@ -27,8 +27,8 @@ function LoginPage() {
     e.preventDefault();
     
     const login = await ApiService.login(id, password)
-    const decoded = jwtDecode(login.access_token);
-    localStorage.setItem('accessToken', login.access_token);
+    const decoded = jwtDecode(login.viewModel.access_token);
+    localStorage.setItem('accessToken', login.viewModel.access_token);
     localStorage.setItem('userName', id);
     localStorage.setItem('userRole', decoded.role);
     localStorage.setItem('exp', decoded.exp);
@@ -36,7 +36,7 @@ function LoginPage() {
     const accessToken = localStorage.getItem('accessToken');
     alert(accessToken);
     // Simulating login check. In a real app, this would be an API call.
-    if (login.access_token) {
+    if (login.viewModel.access_token) {
       setIsFirstTimeLogin(true);
     } else {
       setAttempts(attempts - 1);

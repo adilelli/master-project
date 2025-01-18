@@ -22,7 +22,7 @@ const handleRequest = async (config) => {
     return response.data;
   } catch (error) {
     console.error(error);
-    throw error; // Propagate the error for handling by the caller
+    alert(error); // Propagate the error for handling by the caller
   }
 };
 
@@ -37,6 +37,11 @@ const ApiService = {
 
   viewStaff: async () => {
     const config = { method: 'get', url: '/user' };
+    return handleRequest(config);
+  },
+
+  viewUser: async (role) => {
+    const config = { method: 'get', url: `/user?userRole=${role}` };
     return handleRequest(config);
   },
 

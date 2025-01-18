@@ -26,6 +26,20 @@ async def PrepareEvaluation(evaluationdto: evaluationDto, current_user: Tuple[st
     if(role != 1):
         raise HTTPException(status_code=403, detail = "Only Office Assistant can add evaluation")
     
+        # Validate supervisor and co-supervisor IDs
+    if evaluationdto.supervisorId:
+        supervisor = userCollection.find_one({"userName": evaluationdto.supervisorId})
+        if not supervisor:
+            raise HTTPException(status_code=400, detail="Invalid supervisor ID.")
+
+    if evaluationdto.coSupervisorId:
+        co_supervisor = userCollection.find_one({"userName": evaluationdto.coSupervisorId})
+        if not co_supervisor:
+            raise HTTPException(status_code=400, detail="Invalid co-supervisor ID.")
+        
+    if evaluationdto.supervisorId == evaluationdto.coSupervisorId:
+        raise HTTPException(status_code=400, detail="Supervisor and Co Supervisor cannot the same")
+    
     evaluation = map_evaluation(evaluationdto)
     result = evalCollection.insert_one(evaluation.model_dump(exclude_none=True))
     return {"_id": str(result.inserted_id), "evaluation": evaluation}
@@ -63,12 +77,15 @@ async def add_update_supervisor(
             raise HTTPException(status_code=400, detail="Invalid co-supervisor ID.")
 
     # Update the evaluation
-    eval["supervisorId"] = supervisordto.supervisorId
-    eval["coSupervisorId"] = supervisordto.coSupervisorId
+    eval['supervisorId'] = supervisordto.supervisorId
+    eval['coSupervisorId'] = supervisordto.coSupervisorId
 
     result = evalCollection.update_one({"_id": ObjectId(evaluationId)}, {"$set": eval})
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Failed to update evaluation.")
+    
+    # Convert ObjectId to string for serialization
+    eval['_id'] = str(eval['_id'])
 
     return ResponseDto(response="Evaluation updated successfully", viewModel = eval, status=True)
 
@@ -77,7 +94,8 @@ async def AddUpdateExaminer(evaluationId: str, examinerdto: examinerDto, current
 
     username, role = current_user
 
-    if role != 1 or role != 3 or role != 4: #besides OA or Professor
+      # Check if the role is not one of the allowed roles (1, 3, 4)
+    if role not in (1, 3, 4):
         raise HTTPException(status_code=403, detail="You do not have the permission to add examiner")
     
     if not ObjectId.is_valid(evaluationId):
@@ -90,17 +108,35 @@ async def AddUpdateExaminer(evaluationId: str, examinerdto: examinerDto, current
     if eval.get('lockStatus') == True: # Check if nomination is locked
         raise HTTPException(status_code=403, detail="Evaluation has been locked")
         
+    if eval.get('supervisorId') is None and eval.get('coSupervisorId') is None:
+        raise HTTPException(status_code=400, detail="Supervisor is Empty")
+    
+    if username != eval.get('supervisorId'):
+        raise HTTPException(status_code=403, detail="Only main supervisor can add/update examiner")
+    
+    if examinerdto.examinerId1 is None and examinerdto.examinerId2 is None and examinerdto.examinerId3 is None:
+        raise HTTPException(status_code=400, detail="Examiner must be Filled")
 
-    if(eval.get('supervisorId')):
-        supervisorId = userCollection.find_one({"userName": eval.get('supervisorId')})
-        supervisorRole = supervisorId.get("userRole")
+    # if(eval.get('supervisorId')):
+    supervisorId = userCollection.find_one({"userName": eval.get('supervisorId')})
+    supervisorRole = supervisorId.get("userRole")
 
-    if(eval.get('coSupervisorId')):
-        coSupervisorId = userCollection.find_one({"userName": eval.get('coSupervisorId')})
-        coSupervisorRole = coSupervisorId.get("userRole")
+    # if(eval.get('coSupervisorId')):
+    coSupervisorId = userCollection.find_one({"userName": eval.get('coSupervisorId')})
+    coSupervisorRole = coSupervisorId.get("userRole")
 
     if(examinerdto.examinerId1):
         examinerId1 = userCollection.find_one({"userName": examinerdto.examinerId1})
+        examinerId2 = userCollection.find_one({"userName": examinerdto.examinerId2})
+        examinerId3 = userCollection.find_one({"userName": examinerdto.examinerId3})
+
+        if not examinerId1:
+            raise HTTPException(status_code=400, detail="Invalid examiner ID 1.")
+        if not examinerId2:
+            raise HTTPException(status_code=400, detail="Invalid examiner ID 2.")
+        if not examinerId3:
+            raise HTTPException(status_code=400, detail="Invalid examiner ID 3.")
+        
         examiner1Role = examinerId1.get("userRole")
 
     if(examiner1Role is not None and examiner1Role < 3):
@@ -110,6 +146,20 @@ async def AddUpdateExaminer(evaluationId: str, examinerdto: examinerDto, current
 
     if(coSupervisorRole is not None and examiner1Role < coSupervisorRole):
         raise HTTPException(status_code=400, detail="Examiner 1 must be a professor")
+    
+    # Combine IDs for uniqueness check
+    ids = [
+        eval.get('supervisorId'), 
+        eval.get('coSupervisorId'), 
+        examinerdto.examinerId1, 
+        examinerdto.examinerId2, 
+        examinerdto.examinerId3
+    ]
+
+    # Check for duplicates
+    unique_ids = set(ids)
+    if len(ids) != len(unique_ids):
+        raise HTTPException(status_code=400, detail="Examiners must be unique and different from the supervisor or co-supervisor")
 
     eval['examinerId1'] = examinerdto.examinerId1
     eval['examinerId2'] = examinerdto.examinerId2
@@ -118,6 +168,10 @@ async def AddUpdateExaminer(evaluationId: str, examinerdto: examinerDto, current
     result = evalCollection.update_one({"_id": ObjectId(evaluationId)}, {"$set": eval})
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Evaluation not found")
+    
+    # Convert ObjectId to string for serialization
+    eval['_id'] = str(eval['_id'])
+
     return ResponseDto(response="Evaluation updated successfully", viewModel = eval, status=True)
 
 @router.put("/chairperson/{evaluationId}", response_model=ResponseDto, tags=["evaluation"])
@@ -185,10 +239,28 @@ async def AddChairPerson(evaluationId: str, chairpersondto: chairpersonDto, curr
     
     eval['chairpersonId'] = chairpersondto.chairpersonId
 
+        # Combine IDs for uniqueness check
+    ids = [
+        eval.get('supervisorId'), 
+        eval.get('coSupervisorId'), 
+        eval.get('examinerId1'), 
+        eval.get('examinerId2'), 
+        eval.get('examinerId3'), 
+        chairpersondto.chairpersonId
+    ]
+
+    # Check for duplicates
+    unique_ids = set(ids)
+    if len(ids) != len(unique_ids):
+        raise HTTPException(status_code=400, detail="Chairperson must be different from the supervisor, co-supervisor or examiners")
+
     # Update evaluation
     result = evalCollection.update_one({"_id": ObjectId(evaluationId)}, {"$set": eval})
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Evaluation not found")
+    
+    # Convert ObjectId to string for serialization
+    eval['_id'] = str(eval['_id'])
     
     return ResponseDto(response="Evaluation updated successfully", viewModel=eval, status=True)
 
@@ -207,12 +279,60 @@ async def delete_evaluation(evaluationId: str, current_user: Any = Depends(get_c
     
     return ResponseDto(response="Evaluation deleted successfully", viewModel=None, status=True)
 
+@router.get("/filter/{evaluationId}", tags=["evaluation"])
+async def ViewFilteredEvaluation(evaluationId: str, current_user: Tuple[str, Any] = Depends(get_current_user)):
+
+    username, role = current_user
+
+    # Validate evaluation ID format
+    if not ObjectId.is_valid(evaluationId):
+        raise HTTPException(status_code=400, detail="Invalid evaluation ID format")
+    
+    # Fetch existing evaluation data
+    eval = evalCollection.find_one({"_id": ObjectId(evaluationId)})
+    if not eval:
+        raise HTTPException(status_code=404, detail="Evaluation not found")
+
+    if eval.get('lockStatus') == True:  # Check if nomination is locked
+        raise HTTPException(status_code=403, detail="Evaluation has been locked")
+    
+    if(eval.get('supervisorId')):
+        supervisorId = userCollection.find_one({"userName": eval.get('supervisorId')})
+        supervisorRole = supervisorId.get("userRole")
+
+    if(eval.get('coSupervisorId')):
+        coSupervisorId = userCollection.find_one({"userName": eval.get('coSupervisorId')})
+        coSupervisorRole = coSupervisorId.get("userRole")
+
+    query = {}
+
+    if(supervisorRole == 4 or coSupervisorRole == 4):
+        query["userRole"] = 4
+    else:
+        query["userRole"] = {"$gte": 3}
+
+        # Fetch matching users
+    users = userCollection.find(query)
+
+    # Format the response and remove passwords
+    result = [
+        {**user, "_id": str(user["_id"])} for user in users
+    ]
+    for user in result:
+        user.pop("password", None)  # Remove password field if present
+
+    if not result:
+        raise HTTPException(status_code=404, detail="No users found matching the criteria")
+
+    return result
+        
+
 
 @router.get("/", tags=["evaluation"])
 async def ViewEvaluation(
     studentId: str = Query(None),  # Optional query parameter
     supervisorId: str = Query(None),
-    coSupervisorId: int = Query(None),
+    coSupervisorId: str = Query(None),
     programType: str = Query(None),
     evaluationType: str = Query(None),
     semester: str = Query(None),
@@ -285,5 +405,8 @@ async def lock_nomination(
     result = evalCollection.update_one({"_id": ObjectId(evaluationId)}, {"$set": eval})
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Failed to update evaluation.")
+    
+    # Convert ObjectId to string for serialization
+    eval['_id'] = str(eval['_id'])
 
     return ResponseDto(response="Evaluation updated successfully", viewModel = eval, status=True)
