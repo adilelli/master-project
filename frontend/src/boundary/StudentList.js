@@ -35,6 +35,7 @@ function StudentList() {
   const [currentStudent, setCurrentStudent] = useState({
     id: '',
     name: '',
+    researchTitle: '', // Added research title
     program: '',
     evaluationType: '',
     currentSemester: '',
@@ -48,14 +49,13 @@ function StudentList() {
     lockNomination: false, 
   });
 
-  const semesters = ['1', '2', '3', '4'];
-
   const handleOpen = () => setOpen(true);
   const handleClose = () => {
     setOpen(false);
     setCurrentStudent({
       id: '',
       name: '',
+      researchTitle: '',
       program: '',
       evaluationType: '',
       currentSemester: '',
@@ -113,6 +113,7 @@ function StudentList() {
   const handleDownloadExcel = () => {
     const worksheet = XLSX.utils.json_to_sheet(students.map(student => ({
       'Name': student.name,
+      'Research Title': student.researchTitle,
       'Program': student.program,
       'Evaluation Type': student.evaluationType,
       'Current Semester': student.currentSemester,
@@ -169,6 +170,7 @@ function StudentList() {
           <TableHead>
             <TableRow>
               <TableCell>Name</TableCell>
+              <TableCell>Research Title</TableCell>
               <TableCell>Program</TableCell>
               <TableCell>Evaluation Type</TableCell>
               <TableCell>Current Semester</TableCell>
@@ -187,6 +189,7 @@ function StudentList() {
             {filteredStudents.map((student) => (
               <TableRow key={student.id}>
                 <TableCell>{student.name}</TableCell>
+                <TableCell>{student.researchTitle}</TableCell>
                 <TableCell>{student.program}</TableCell>
                 <TableCell>{student.evaluationType}</TableCell>
                 <TableCell>{student.currentSemester}</TableCell>
@@ -235,6 +238,15 @@ function StudentList() {
             margin="normal"
           />
           
+          <TextField
+            name="researchTitle"
+            label="Research Title"
+            fullWidth
+            value={currentStudent.researchTitle}
+            onChange={handleInputChange}
+            margin="normal"
+          />
+
           <FormControl fullWidth margin="normal">
             <InputLabel>Program</InputLabel>
             <Select
@@ -267,21 +279,14 @@ function StudentList() {
             </Select>
           </FormControl>
 
-          <FormControl fullWidth margin="normal">
-            <InputLabel>Current Semester</InputLabel>
-            <Select
-              name="currentSemester"
-              value={currentStudent.currentSemester}
-              onChange={handleInputChange}
-              label="Current Semester"
-            >
-              {semesters.map((semester) => (
-                <MenuItem key={semester} value={semester}>
-                  {semester}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <TextField
+            name="currentSemester"
+            label="Current Semester"
+            fullWidth
+            value={currentStudent.currentSemester}
+            onChange={handleInputChange}
+            margin="normal"
+          />
 
           <FormControl fullWidth margin="normal">
             <InputLabel>Main Supervisor</InputLabel>

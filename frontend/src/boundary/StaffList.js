@@ -21,15 +21,18 @@ import {
   Stack,
   Typography,
   Alert,
-  Snackbar
+  Snackbar,
+  Box
 } from '@mui/material';
 import { Download, Upload } from 'lucide-react';
 import { useDashboard } from '../context/DashboardContext';
+import { ROLES } from '../utils/constants';
 
 function StaffList() {
   const { staff = [], setStaff } = useDashboard();
   const [open, setOpen] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [selectedRole, setSelectedRole] = useState('all');
   const fileInputRef = useRef(null);
   const [currentStaff, setCurrentStaff] = useState({
     id: '',
@@ -83,8 +86,16 @@ function StaffList() {
     setStaff(staff.filter(s => s.id !== id));
   };
 
+  const handleRoleChange = (event) => {
+    setSelectedRole(event.target.value);
+  };
+
+  const filteredStaff = selectedRole === 'all' 
+    ? staff 
+    : staff.filter(s => s.role === selectedRole);
+
   const handleDownloadExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(staff.map(staffMember => ({
+    const worksheet = XLSX.utils.json_to_sheet(filteredStaff.map(staffMember => ({
       'Name': staffMember.name,
       'Title': staffMember.title,
       'Role': staffMember.role,
@@ -140,7 +151,6 @@ function StaffList() {
       }
     };
     reader.readAsArrayBuffer(file);
-    // Reset file input
     event.target.value = '';
   };
 
@@ -181,6 +191,24 @@ function StaffList() {
         </Button>
       </Stack>
 
+      <Box sx={{ mb: 2 }}>
+        <FormControl sx={{ minWidth: 200 }}>
+          <InputLabel>Filter by Role</InputLabel>
+          <Select
+            value={selectedRole}
+            onChange={handleRoleChange}
+            label="Filter by Role"
+          >
+            <MenuItem value="all">All Roles</MenuItem>
+            {ROLES.map((role) => (
+              <MenuItem key={role} value={role}>
+                {role}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Box>
+
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
@@ -197,7 +225,7 @@ function StaffList() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {staff.map((staffMember) => (
+            {filteredStaff.map((staffMember) => (
               <TableRow key={staffMember.id}>
                 <TableCell>{staffMember.name}</TableCell>
                 <TableCell>{staffMember.title}</TableCell>
@@ -236,14 +264,21 @@ function StaffList() {
             onChange={handleInputChange}
             margin="normal"
           />
-          <TextField
-            name="role"
-            label="Role"
-            fullWidth
-            value={currentStaff.role}
-            onChange={handleInputChange}
-            margin="normal"
-          />
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Role</InputLabel>
+            <Select
+              name="role"
+              value={currentStaff.role}
+              onChange={handleInputChange}
+              label="Role"
+            >
+              {ROLES.map((role) => (
+                <MenuItem key={role} value={role}>
+                  {role}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           <TextField
             name="level"
             label="Level"
