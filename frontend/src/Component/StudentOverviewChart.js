@@ -39,8 +39,13 @@ function StudentOverviewChart({ students }) {
   const chartRef = useRef(null);
 
   // Get unique programs and semesters
-  const programs = [...new Set(students.map(student => student.program))];
+  const programs = [...new Set(students.map(student => student.program))].sort();
   const semesters = [...new Set(students.map(student => student.currentSemester))].sort();
+
+  // Calculate totals for each program
+  const programTotals = programs.map(program => 
+    students.filter(student => student.program === program).length
+  );
 
   // Prepare data for the chart
   const data = {
@@ -71,10 +76,12 @@ function StudentOverviewChart({ students }) {
             size: 14,
             weight: 'bold'
           }
-        }
+        },
+        stacked: true
       },
       y: {
         beginAtZero: true,
+        stacked: true,
         title: {
           display: true,
           text: 'Number of Students',
@@ -104,7 +111,37 @@ function StudentOverviewChart({ students }) {
           size: 16,
           weight: 'bold'
         }
+      },
+      tooltip: {
+        callbacks: {
+          footer: (tooltipItems) => {
+            const index = tooltipItems[0].dataIndex;
+            return `Total: ${programTotals[index]}`;
+          }
+        }
       }
+    }
+  };
+
+  // Add plugin to display total on top of bars
+  const totalLabelsPlugin = {
+    id: 'totalLabels',
+    afterDatasetsDraw(chart) {
+      const { ctx, data, scales } = chart;
+      const { x, y } = scales;
+
+      ctx.save();
+      ctx.font = 'bold 12px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.fillStyle = '#000';
+
+      programTotals.forEach((total, index) => {
+        const xPos = x.getPixelForValue(data.labels[index]);
+        const yPos = y.getPixelForValue(total);
+        ctx.fillText(total, xPos, yPos - 5);
+      });
+      ctx.restore();
     }
   };
 
@@ -150,6 +187,7 @@ function StudentOverviewChart({ students }) {
             ref={chartRef}
             data={data}
             options={options}
+            plugins={[totalLabelsPlugin]}
           />
         </div>
       </CardContent>

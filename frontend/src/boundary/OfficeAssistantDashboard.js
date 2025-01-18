@@ -6,6 +6,7 @@ import StudentOverviewChart from '../Component/StudentOverviewChart';
 import StudentList from './StudentList';
 import StaffList from './StaffList';
 import { useDashboard } from '../context/DashboardContext';
+import StudentSummaryTable from '../Component/StudentSummaryTable';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -55,7 +56,10 @@ function Dashboard() {
         <Grid item xs={12}>
           <Paper elevation={3} sx={{ padding: 3, backgroundColor: theme.palette.background.paper }}>
             {students ? (
-              <StudentOverviewChart students={students} />
+              <>
+                <StudentOverviewChart students={students} />
+                <StudentSummaryTable students={students} />
+              </>
             ) : (
               <CircularProgress />
             )}
