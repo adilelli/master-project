@@ -25,7 +25,10 @@ async def ViewMasterlist(userName: str = None, userRole: int = None, current_use
     if userName is not None:
         query["userName"] = userName
     if userRole is not None:
-        query["userRole"] = userRole
+        if userRole == 3:
+            query["userRole"] = {"$gte": 3}
+        else:
+            query["userRole"] = userRole
     
     print(query)
 
@@ -36,8 +39,8 @@ async def ViewMasterlist(userName: str = None, userRole: int = None, current_use
     result = [
         {**user, "_id": str(user["_id"])} for user in users
     ]
-    for user in result:
-        user.pop("password", None)  # Remove password field if present
+    # for user in result:
+    #     user.pop("password", None)  # Remove password field if present
 
     if not result:
         raise HTTPException(status_code=404, detail="No users found matching the criteria")
@@ -52,8 +55,6 @@ async def CreateUser(user: UserDb, current_user: Tuple[str, Any] = Depends(get_c
     # Validate password length
     if (user.userRole != 0 and (len(user.password) < 8 or len(user.password) > 16)):
         raise HTTPException(status_code=400, detail="Password must be between 8 and 16 characters")
-    elif (user.userRole == 0):
-        user.password = ""
     user.firstTimer = True
     # Check if username already exists
     existing_user = userCollection.find_one({"userName": user.userName})
@@ -61,7 +62,7 @@ async def CreateUser(user: UserDb, current_user: Tuple[str, Any] = Depends(get_c
         raise HTTPException(status_code=400, detail="Username already exists")
 
     result = userCollection.insert_one(user.model_dump())
-    user_dict = user.model_dump
+    user_dict = user.model_dump()
     user_dict.pop("password", None)  # Remove password field if present
     return ResponseDto(response="User created successfully", viewModel = user_dict, status=True)
 
@@ -79,6 +80,10 @@ async def UpdateUser(userdto: UserDto, current_user: Tuple[str, Any] = Depends(g
     if(userdto.userName):
         existing_user['userName'] = userdto.userName
     if(userdto.password):
+        if userdto.password.isdigit():
+            raise HTTPException(status_code=400, detail="Password cannot consist of only numbers.")
+        if userdto.password.isalpha():
+            raise HTTPException(status_code=400, detail="Password cannot consist of only letters.")
         existing_user['password'] = userdto.password
     if userdto.userRole is not None:  # Check if userRole is provided (it can be 0 or a valid number)
         existing_user['userRole'] = userdto.userRole
