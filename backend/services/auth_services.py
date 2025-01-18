@@ -5,6 +5,10 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 from jose import JWTError, jwt
 from passlib.context import CryptContext
+import os
+import asyncio
+from email.mime.text import MIMEText
+from aiosmtplib import SMTP
 
 from config import configUser
 
@@ -54,3 +58,27 @@ def get_current_user(token: str = Security(oauth2_scheme)):
         return username, role
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
+
+# Email Configuration
+SMTP_HOST = "smtp.gmail.com"
+SMTP_PORT = 587
+EMAIL_USER = "adil.elli09@gmail.com"
+EMAIL_PASS = "Ad1lell1."
+
+async def send_email(to_email: str, subject: str, body: str):
+    # Create email
+    message = MIMEText(body)
+    message["From"] = EMAIL_USER
+    message["To"] = to_email
+    message["Subject"] = subject
+
+    # Send email
+    try:
+        async with SMTP(hostname=SMTP_HOST, port=SMTP_PORT) as smtp:
+            await smtp.connect()
+            await smtp.starttls()  # Secure the connection
+            await smtp.login(EMAIL_USER, EMAIL_PASS)
+            await smtp.send_message(message)
+            print(f"Email sent to {to_email}")
+    except Exception as e:
+        print(f"Failed to send email: {e}")

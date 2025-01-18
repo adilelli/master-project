@@ -80,6 +80,10 @@ async def UpdateUser(userdto: UserDto, current_user: Tuple[str, Any] = Depends(g
     if(userdto.userName):
         existing_user['userName'] = userdto.userName
     if(userdto.password):
+        if userdto.password.isdigit():
+            raise HTTPException(status_code=400, detail="Password cannot consist of only numbers.")
+        if userdto.password.isalpha():
+            raise HTTPException(status_code=400, detail="Password cannot consist of only letters.")
         existing_user['password'] = userdto.password
     if userdto.userRole is not None:  # Check if userRole is provided (it can be 0 or a valid number)
         existing_user['userRole'] = userdto.userRole

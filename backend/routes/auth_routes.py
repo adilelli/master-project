@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from dtos import ResponseDto
 from config import configUser
-from services.auth_services import hash_password, verify_password, create_access_token  # type: ignore
+from services.auth_services import hash_password, send_email, verify_password, create_access_token  # type: ignore
 
 
 router = APIRouter()
@@ -44,5 +44,16 @@ async def login(user: LoginDto):
     access_token = create_access_token(data={"sub": user.userName, "role": user_data["userRole"]})
     user_data["attempt"] = 0
     result = userCollection.update_one({"userName": user.userName}, {"$set": user_data})
+
     token = {"access_token": access_token, "token_type": "bearer"}
     return ResponseDto(response="User updated successfully", viewModel = token, status=True)
+
+@router.post("/email/{email}")
+async def send_email_endpoint(email: str):
+    await send_email(
+        to_email=email,
+        subject="Password Reset Request",
+        body="Click here to reset your password: https://github.com/adilelli/master-project"
+    )
+    return {"message": "Email sent if the address exists."}
+
