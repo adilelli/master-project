@@ -5,9 +5,17 @@ import {
   Stack,
   Card,
   CardContent,
-  Typography
+  Typography,
+  Box,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow
 } from '@mui/material';
 import { Download } from 'lucide-react';
+import html2canvas from 'html2canvas';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -37,6 +45,7 @@ const semesterColors = [
 
 function StudentOverviewChart({ students }) {
   const chartRef = useRef(null);
+  const containerRef = useRef(null);
 
   // Get unique programs and semesters
   const programs = [...new Set(students.map(student => student.program))].sort();
@@ -145,53 +154,101 @@ function StudentOverviewChart({ students }) {
     }
   };
 
-  const handleDownload = () => {
-    if (chartRef.current) {
-      // Set temporary white background
-      const ctx = chartRef.current.canvas.getContext('2d');
-      const originalFill = ctx.fillStyle;
-      ctx.save();
-      ctx.fillStyle = 'white';
-      ctx.fillRect(0, 0, chartRef.current.canvas.width, chartRef.current.canvas.height);
-      ctx.restore();
-      
-      // Create download link
-      const link = document.createElement('a');
-      link.download = 'student-overview.png';
-      link.href = chartRef.current.canvas.toDataURL('image/png');
-      link.click();
-      
-      // Restore original background
-      ctx.fillStyle = originalFill;
+  const handleDownload = async () => {
+    if (containerRef.current) {
+      try {
+        // Create canvas from the entire container
+        const canvas = await html2canvas(containerRef.current, {
+          backgroundColor: '#ffffff',
+          scale: 2, // Increase quality
+          logging: false,
+          useCORS: true
+        });
+
+        // Create download link
+        const link = document.createElement('a');
+        link.download = 'student-overview.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      } catch (error) {
+        console.error('Error generating image:', error);
+      }
     }
   };
 
   return (
-    <Card sx={{ p: 2, mb: 3 }}>
-      <Stack direction="row" alignItems="center" spacing={2} mb={2}>
-        <Typography variant="h6" component="h2">
-          Student Overview
-        </Typography>
-        <Button 
-          variant="outlined" 
-          startIcon={<Download />}
-          onClick={handleDownload}
-          sx={{ ml: 'auto' }}
-        >
-          Download Chart
-        </Button>
-      </Stack>
-      <CardContent>
-        <div style={{ height: '400px', width: '100%' }}>
-          <Bar
-            ref={chartRef}
-            data={data}
-            options={options}
-            plugins={[totalLabelsPlugin]}
-          />
-        </div>
-      </CardContent>
-    </Card>
+    <Box ref={containerRef}>
+      <Card sx={{ p: 2, mb: 3 }}>
+        <Stack direction="row" alignItems="center" spacing={2} mb={2}>
+          <Typography variant="h6" component="h2">
+            Student Overview
+          </Typography>
+          <Button 
+            variant="outlined" 
+            startIcon={<Download />}
+            onClick={handleDownload}
+            sx={{ ml: 'auto' }}
+          >
+            Download Overview
+          </Button>
+        </Stack>
+        <CardContent>
+          <div style={{ height: '400px', width: '100%' }}>
+            <Bar
+              ref={chartRef}
+              data={data}
+              options={options}
+              plugins={[totalLabelsPlugin]}
+            />
+          </div>
+        </CardContent>
+      </Card>
+      
+      {/* Summary Table */}
+      <Card sx={{ p: 2 }}>
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell><strong>Semester</strong></TableCell>
+                {programs.map(program => (
+                  <TableCell key={program} align="center">
+                    <strong>{program}</strong>
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {semesters.map((semester) => (
+                <TableRow key={semester}>
+                  <TableCell>Semester {semester}</TableCell>
+                  {programs.map(program => (
+                    <TableCell key={`${semester}-${program}`} align="center">
+                      {students.filter(s => 
+                        s.program === program && 
+                        s.currentSemester === semester
+                      ).length}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+              <TableRow>
+                <TableCell sx={{ fontWeight: 'bold' }}>Total</TableCell>
+                {programs.map(program => (
+                  <TableCell 
+                    key={`total-${program}`} 
+                    align="center" 
+                    sx={{ fontWeight: 'bold' }}
+                  >
+                    {programTotals[programs.indexOf(program)]}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Card>
+    </Box>
   );
 }
 

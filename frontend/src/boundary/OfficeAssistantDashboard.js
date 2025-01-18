@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Paper, Grid, Typography, Container, AppBar, Toolbar, IconButton, Tabs, Tab, Box, CircularProgress } from '@mui/material';
+import { Paper, Grid, Typography, Container, AppBar, Toolbar, IconButton, Tabs, Tab, Box } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { Book } from '@mui/icons-material';
 import StudentOverviewChart from '../Component/StudentOverviewChart';
 import StudentList from './StudentList';
 import StaffList from './StaffList';
 import { useDashboard } from '../context/DashboardContext';
-import StudentSummaryTable from '../Component/StudentSummaryTable';
+import CircularProgress from '@mui/material/CircularProgress';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -24,20 +24,29 @@ function TabPanel(props) {
   );
 }
 
-function Dashboard() {
+const Dashboard = () => {
   const theme = useTheme();
   const { students, staffList } = useDashboard();
   const [tabValue, setTabValue] = useState(0);
 
+  useEffect(() => {
+    // Fetch student data
+  //  const fetchStudents = async () => {
+  //    try {
+  //      const response = await fetch('/api/students');
+  //      const data = await response.json();
+  //      setStudents(data);
+  //    } catch (error) {
+  //      console.error('Error fetching students:', error);
+  //    }
+  //  };
+
+  //  fetchStudents();
+  }, []);
+
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
-
-  useEffect(() => {
-    if (!staffList || staffList.length === 0) {
-      console.warn('Staff list is not available yet.');
-    }
-  }, [staffList]);
 
   return (
     <Container maxWidth="lg">
@@ -56,10 +65,7 @@ function Dashboard() {
         <Grid item xs={12}>
           <Paper elevation={3} sx={{ padding: 3, backgroundColor: theme.palette.background.paper }}>
             {students ? (
-              <>
-                <StudentOverviewChart students={students} />
-                <StudentSummaryTable students={students} />
-              </>
+              <StudentOverviewChart students={students} />
             ) : (
               <CircularProgress />
             )}
@@ -96,7 +102,7 @@ function Dashboard() {
       </Grid>
     </Container>
   );
-}
+};
 
 export default Dashboard;
 
