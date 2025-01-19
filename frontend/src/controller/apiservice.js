@@ -92,7 +92,12 @@ const ApiService = {
   },
 
   viewEvaluations: async () => {
-    const config = { method: 'get', url: '/evaluation' };
+    const config = { method: 'get', url: `/evaluation` };
+    return handleRequest(config);
+  },
+
+  viewSupervisedEvaluations: async (userName) => {
+    const config = { method: 'get', url: `/evaluation?supervisorId=${userName}` };
     return handleRequest(config);
   },
 
