@@ -1,38 +1,63 @@
-// api.js
 import axios from 'axios';
 
-// Base configuration for Axios
+// Base URL configuration
 const API_BASE_URL = 'http://127.0.0.1:8000';
-const AUTHORIZATION_TOKEN = localStorage.getItem('accessToken'); // Replace with your actual token
 
+// Create Axios instance
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
-    Authorization: `Bearer ${localStorage.getItem('accessToken')}`
   },
   maxBodyLength: Infinity,
 });
 
-// Utility function for error handling
+// Add request interceptor to dynamically add token
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('accessToken'); // Fetch token dynamically
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor for error handling (optional)
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      // Handle token expiration or unauthorized access
+      alert('Unauthorized: Please log in again.');
+      // Redirect to login page or clear token
+      localStorage.removeItem('accessToken');
+      window.location.href = '/login'; // Replace with your login route
+    }
+    return Promise.reject(error);
+  }
+);
+
+// Utility function for handling API requests
 const handleRequest = async (config) => {
   try {
     const response = await axiosInstance(config);
-    console.log(response.data);
     return response.data;
   } catch (error) {
-    console.error(error);
-    alert(error); // Propagate the error for handling by the caller
+    console.error('API Error:', error);
+    throw error; // Propagate error for caller to handle
   }
 };
 
-// API Methods
+// API Service Methods
 const ApiService = {
   login: async (username, password) => {
     const data = { userName: username, password };
     const config = { method: 'post', url: '/auth/login', data };
-    const res =  handleRequest(config);
-    return res;
+    return handleRequest(config);
   },
 
   viewStaff: async () => {
@@ -53,7 +78,6 @@ const ApiService = {
 
   updateUser: async (updateData) => {
     const config = { method: 'put', url: `/user`, data: updateData };
-    console.log(AUTHORIZATION_TOKEN)
     return handleRequest(config);
   },
 
@@ -107,22 +131,6 @@ const ApiService = {
     };
     return handleRequest(config);
   },
-
-  initiatePasswordReset: async (email) => {
-    const config = { method: 'post', url: '/auth/reset-password', data: { email } };
-    return handleRequest(config);
-  },
-
-  verifyResetToken: async (token) => {
-    const config = { method: 'get', url: `/auth/reset-password/${token}` };
-    return handleRequest(config);
-  },
-
-  resetPassword: async (token, newPassword) => {
-    const config = { method: 'post', url: `/auth/reset-password/${token}`, data: { newPassword } };
-    return handleRequest(config);
-  },
 };
 
 export default ApiService;
-
