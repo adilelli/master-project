@@ -21,7 +21,7 @@ class evaluationDb(BaseModel):
     programType: Optional[str] = None
     evaluationType: Optional[str] = None
     semester: Optional[str] = None      
-    postponeStatus: Optional[str] = "POSTPONED"  # postpone=0, ongoing=1
+    postponeStatus: Optional[str] = "ONGOING"  # postpone=0, ongoing=1
     examinerId1: Optional[str] = None  # FK AP  P if S/C==P
     examinerId2: Optional[str] = None  # FK
     examinerId3: Optional[str] = None  # FK

@@ -41,12 +41,11 @@ const Dashboard = () => {
   const { students, setStudents } = useDashboard();
   const [tabValue, setTabValue] = useState(0);
   const [loading, setLoading] = useState(true);
+  const role = localStorage.getItem('userRole');
+  const username = localStorage.getItem('userName');
 
   useEffect(() => {
     const fetchStudents = async () => {
-      const role = localStorage.getItem('userRole');
-      const username = localStorage.getItem('userName');
-
       try {
         let response = [];
         if (role === '1' || role === '2') {
@@ -76,15 +75,24 @@ const Dashboard = () => {
   return (
     <Container maxWidth="lg">
       <AppBar position="sticky" sx={{ bgcolor: theme.palette.primary.main }}>
-        <Toolbar>
-          <IconButton edge="start" color="inherit" aria-label="menu" sx={{ mr: 2 }}>
-            <Book />
-          </IconButton>
-          <Typography variant="h5" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
-            FIRST STAGE EVALUATION
+        <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
+          {/* Left Section: Icon and Title */}
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <IconButton edge="start" color="inherit" aria-label="menu" sx={{ mr: 2 }}>
+              <Book />
+            </IconButton>
+            <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
+              FIRST STAGE EVALUATION
+            </Typography>
+          </Box>
+
+          {/* Right Section: Username */}
+          <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+            {username}
           </Typography>
         </Toolbar>
-      </AppBar>
+    </AppBar>
+
 
       <Grid container spacing={3} sx={{ mt: 3 }}>
         <Grid item xs={12}>
@@ -112,16 +120,17 @@ const Dashboard = () => {
 
             <TabPanel value={tabValue} index={0}>
               <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
-                Student List
+                Student Evaluation List
               </Typography>
-              {students[0]?.supervisorId}
               <StudentList students={students} />
             </TabPanel>
             <TabPanel value={tabValue} index={1}>
               <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
                 Staff List
               </Typography>
-              <StaffList />
+              <div>
+                {role === "1" ? <StaffList /> : <p>You do not have access to the staff list.</p>}
+              </div>
             </TabPanel>
           </Paper>
         </Grid>

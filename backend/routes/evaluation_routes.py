@@ -165,6 +165,8 @@ async def AddUpdateExaminer(evaluationId: str, examinerdto: examinerDto, current
     eval['examinerId2'] = examinerdto.examinerId2
     eval['examinerId3'] = examinerdto.examinerId3
 
+    print(examinerdto.postponeStatus)
+
     if examinerdto.postponeStatus:
         eval['postponeStatus'] = examinerdto.postponeStatus
 
