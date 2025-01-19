@@ -21,7 +21,7 @@ class evaluationDb(BaseModel):
     programType: Optional[str] = None
     evaluationType: Optional[str] = None
     semester: Optional[str] = None      
-    postponeStatus: Optional[int] = None  # postpone=0, ongoing=1
+    postponeStatus: Optional[str] = "POSTPONED"  # postpone=0, ongoing=1
     examinerId1: Optional[str] = None  # FK AP  P if S/C==P
     examinerId2: Optional[str] = None  # FK
     examinerId3: Optional[str] = None  # FK
@@ -38,7 +38,8 @@ class evaluationDto(BaseModel):
     coSupervisorId: Optional[str] = None  # FK
     programType: Optional[str] = None
     evaluationType: Optional[str] = None
-    semester: Optional[str] = None     
+    semester: Optional[str] = None  
+    researchTitle: Optional[str] = None   
 
 # Function to map evaluationDto to evaluationDb
 def map_evaluation(dto: evaluationDto) -> evaluationDb:
@@ -53,10 +54,12 @@ class examinerDto(BaseModel):
     examinerId1: Optional[str] = None  # FK AP  P if S/C==P
     examinerId2: Optional[str] = None  # FK
     examinerId3: Optional[str] = None  # FK
+    postponeStatus: Optional[str] = "ONGOING"
 
 class chairpersonDto(BaseModel):
     semester: str      
     chairpersonId: str  # FK AP  P if S/C==P, 4 session
+    lockStatus: Optional[bool] = False
 
 class ResponseDto(BaseModel):
     response: str

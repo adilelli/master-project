@@ -48,7 +48,7 @@ const handleRequest = async (config) => {
     return response.data;
   } catch (error) {
     console.error('API Error:', error);
-    throw error; // Propagate error for caller to handle
+    alert(error.response.data.detail); // Propagate error for caller to handle
   }
 };
 
@@ -96,6 +96,11 @@ const ApiService = {
     return handleRequest(config);
   },
 
+  viewEvaluationsbyId: async (id) => {
+    const config = { method: 'get', url: `/evaluation?evaluationId=${id}` };
+    return handleRequest(config);
+  },
+
   viewSupervisedEvaluations: async (userName) => {
     const config = { method: 'get', url: `/evaluation?supervisorId=${userName}` };
     return handleRequest(config);
@@ -112,7 +117,7 @@ const ApiService = {
 
   addOrUpdateExaminer: async (evaluationId, examinerData) => {
     const config = {
-      method: 'post',
+      method: 'put',
       url: `/evaluation/examiner/${evaluationId}`,
       data: examinerData,
     };
@@ -128,11 +133,10 @@ const ApiService = {
     return handleRequest(config);
   },
 
-  lockNomination: async (evaluationId, lock = true) => {
+  lockNomination: async (evaluationId, lock) => {
     const config = {
       method: 'put',
-      url: `/evaluation/lock`,
-      params: { evaluationId, lock },
+      url: `/evaluation/lock?evaluationId=${evaluationId}&lock=${lock}`,
     };
     return handleRequest(config);
   },
