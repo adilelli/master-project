@@ -1,12 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Paper, Grid, Typography, Container, AppBar, Toolbar, IconButton, Tabs, Tab, Box } from '@mui/material';
+import {
+  Paper,
+  Grid,
+  Typography,
+  Container,
+  AppBar,
+  Toolbar,
+  IconButton,
+  Tabs,
+  Tab,
+  Box,
+  CircularProgress,
+} from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { Book } from '@mui/icons-material';
 import StudentOverviewChart from '../Component/StudentOverviewChart';
 import StudentList from './StudentList';
 import StaffList from './StaffList';
 import { useDashboard } from '../context/DashboardContext';
-import CircularProgress from '@mui/material/CircularProgress';
+import ApiService from '../controller/apiservice';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -26,23 +38,36 @@ function TabPanel(props) {
 
 const Dashboard = () => {
   const theme = useTheme();
-  const { students, staffList } = useDashboard();
+  const { students, setStudents } = useDashboard();
   const [tabValue, setTabValue] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch student data
-  //  const fetchStudents = async () => {
-  //    try {
-  //      const response = await fetch('/api/students');
-  //      const data = await response.json();
-  //      setStudents(data);
-  //    } catch (error) {
-  //      console.error('Error fetching students:', error);
-  //    }
-  //  };
+    const fetchStudents = async () => {
+      const role = localStorage.getItem('userRole');
+      const username = localStorage.getItem('userName');
 
-  //  fetchStudents();
-  }, []);
+      try {
+        let response = [];
+        if (role === '1' || role === '2') {
+          // Fetch all evaluations
+          response = await ApiService.viewEvaluations();
+        } else if (role === '3' || role === '4') {
+          // Fetch evaluations supervised by the user
+          response = await ApiService.viewSupervisedEvaluations(username);
+        }
+
+        // Update the students state
+        setStudents(response);
+      } catch (error) {
+        console.error('Error fetching evaluations:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStudents();
+  }, [setStudents]);
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -64,10 +89,10 @@ const Dashboard = () => {
       <Grid container spacing={3} sx={{ mt: 3 }}>
         <Grid item xs={12}>
           <Paper elevation={3} sx={{ padding: 3, backgroundColor: theme.palette.background.paper }}>
-            {students ? (
-              <StudentOverviewChart students={students} />
-            ) : (
+            {loading ? (
               <CircularProgress />
+            ) : (
+              <StudentOverviewChart students={students} />
             )}
           </Paper>
         </Grid>
@@ -89,7 +114,8 @@ const Dashboard = () => {
               <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
                 Student List
               </Typography>
-              <StudentList />
+              {students[0]?.supervisorId}
+              <StudentList students={students} />
             </TabPanel>
             <TabPanel value={tabValue} index={1}>
               <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
@@ -105,4 +131,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-

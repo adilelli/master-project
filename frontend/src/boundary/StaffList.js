@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import * as XLSX from 'xlsx';
 import { 
   Table, 
@@ -27,6 +27,7 @@ import {
 import { Download, Upload } from 'lucide-react';
 import { useDashboard } from '../context/DashboardContext';
 import { ROLES } from '../utils/constants';
+import ApiService from '../controller/apiservice';  // Assuming ApiService is here
 
 function StaffList() {
   const { staff = [], setStaff } = useDashboard();
@@ -45,6 +46,25 @@ function StaffList() {
     sessionCount: 0,
     university: ''
   });
+
+  // Fetching the user data when the component mounts
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await ApiService.viewStaff(); // Assuming it fetches the staff data
+        setStaff(response); // Set the staff data in context or local state
+      } catch (error) {
+        console.error("Error fetching staff data:", error);
+        setSnackbar({
+          open: true,
+          message: 'Error fetching staff data. Please try again later.',
+          severity: 'error'
+        });
+      }
+    };
+
+    fetchData(); // Call fetch function on mount
+  }, [setStaff]); // Empty dependency array ensures this runs only once on mount
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => {
@@ -213,28 +233,17 @@ function StaffList() {
         <Table>
           <TableHead>
             <TableRow>
+            <TableCell>id</TableCell>
               <TableCell>Name</TableCell>
-              <TableCell>Title</TableCell>
               <TableCell>Role</TableCell>
-              <TableCell>Level</TableCell>
-              <TableCell>Department</TableCell>
-              <TableCell>Faculty</TableCell>
-              <TableCell>Session Count</TableCell>
-              <TableCell>University</TableCell>
-              <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {filteredStaff.map((staffMember) => (
-              <TableRow key={staffMember.id}>
-                <TableCell>{staffMember.name}</TableCell>
-                <TableCell>{staffMember.title}</TableCell>
-                <TableCell>{staffMember.role}</TableCell>
-                <TableCell>{staffMember.level}</TableCell>
-                <TableCell>{staffMember.department}</TableCell>
-                <TableCell>{staffMember.faculty}</TableCell>
-                <TableCell>{staffMember.sessionCount}</TableCell>
-                <TableCell>{staffMember.university}</TableCell>
+              <TableRow key={staffMember._id}>
+                <TableCell>{staffMember._id}</TableCell>
+                <TableCell>{staffMember.userName}</TableCell>
+                <TableCell>{staffMember.userRole}</TableCell>
                 <TableCell>
                   <Button onClick={() => handleEdit(staffMember)}>Edit</Button>
                   <Button onClick={() => handleDelete(staffMember.id)}>Delete</Button>
@@ -264,21 +273,14 @@ function StaffList() {
             onChange={handleInputChange}
             margin="normal"
           />
-          <FormControl fullWidth margin="normal">
-            <InputLabel>Role</InputLabel>
-            <Select
-              name="role"
-              value={currentStaff.role}
-              onChange={handleInputChange}
-              label="Role"
-            >
-              {ROLES.map((role) => (
-                <MenuItem key={role} value={role}>
-                  {role}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <TextField
+            name="role"
+            label="Role"
+            fullWidth
+            value={currentStaff.role}
+            onChange={handleInputChange}
+            margin="normal"
+          />
           <TextField
             name="level"
             label="Level"
@@ -306,11 +308,11 @@ function StaffList() {
           <TextField
             name="sessionCount"
             label="Session Count"
-            type="number"
             fullWidth
             value={currentStaff.sessionCount}
             onChange={handleInputChange}
             margin="normal"
+            type="number"
           />
           <TextField
             name="university"
@@ -323,18 +325,16 @@ function StaffList() {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleSubmit} variant="contained" color="primary">
-            {currentStaff.id ? 'Save' : 'Add'}
-          </Button>
+          <Button onClick={handleSubmit}>Save</Button>
         </DialogActions>
       </Dialog>
 
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
+      <Snackbar 
+        open={snackbar.open} 
+        autoHideDuration={6000} 
         onClose={handleSnackbarClose}
       >
-        <Alert onClose={handleSnackbarClose} severity={snackbar.severity}>
+        <Alert onClose={handleSnackbarClose} severity={snackbar.severity} sx={{ width: '100%' }}>
           {snackbar.message}
         </Alert>
       </Snackbar>
@@ -343,4 +343,3 @@ function StaffList() {
 }
 
 export default StaffList;
-
