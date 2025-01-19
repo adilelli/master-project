@@ -165,6 +165,9 @@ async def AddUpdateExaminer(evaluationId: str, examinerdto: examinerDto, current
     eval['examinerId2'] = examinerdto.examinerId2
     eval['examinerId3'] = examinerdto.examinerId3
 
+    if examinerdto.postponeStatus:
+        eval['postponeStatus'] = examinerdto.postponeStatus
+
     result = evalCollection.update_one({"_id": ObjectId(evaluationId)}, {"$set": eval})
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Evaluation not found")
@@ -188,8 +191,8 @@ async def AddChairPerson(evaluationId: str, chairpersondto: chairpersonDto, curr
     if not eval:
         raise HTTPException(status_code=404, detail="Evaluation not found")
 
-    if eval.get('lockStatus') == True:  # Check if nomination is locked
-        raise HTTPException(status_code=403, detail="Evaluation has been locked")
+    # if eval.get('lockStatus') == True:  # Check if nomination is locked
+    #     raise HTTPException(status_code=403, detail="Evaluation has been locked")
 
     # Build query to check chairperson session limits
     query = {}
@@ -198,8 +201,16 @@ async def AddChairPerson(evaluationId: str, chairpersondto: chairpersonDto, curr
     if chairpersondto.chairpersonId:
         query["chairpersonId"] = chairpersondto.chairpersonId
 
-    # Check if chairperson exceeds session limit
+# Debugging: Print the constructed query
+    print("Constructed Query:", query)
+
+    # Debugging: Print the matching documents
+    matching_docs = list(evalCollection.find(query))
+    print("Matching Documents:", matching_docs)
+
+    # Count the matching documents
     evaluation_count = evalCollection.count_documents(query)
+    print("Count of Documents:", evaluation_count)
 
     if role != 2 :
         raise HTTPException(status_code=403, detail="Only coordinator can assign chairperson")
@@ -330,6 +341,7 @@ async def ViewFilteredEvaluation(evaluationId: str, current_user: Tuple[str, Any
 
 @router.get("/", tags=["evaluation"])
 async def ViewEvaluation(
+    evaluationId = Query(None),
     studentId: str = Query(None),  # Optional query parameter
     supervisorId: str = Query(None),
     coSupervisorId: str = Query(None),
@@ -345,7 +357,8 @@ async def ViewEvaluation(
 ):
     # Construct query based on the provided parameters
     query = {}
-
+    if evaluationId is not None:
+        query["_id"] = ObjectId(evaluationId)
     if studentId is not None:
         query["studentId"] = studentId
     if supervisorId is not None:

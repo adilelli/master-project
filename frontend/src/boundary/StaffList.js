@@ -36,15 +36,8 @@ function StaffList() {
   const [selectedRole, setSelectedRole] = useState('all');
   const fileInputRef = useRef(null);
   const [currentStaff, setCurrentStaff] = useState({
-    id: '',
-    name: '',
-    title: '',
-    role: '',
-    level: '',
-    department: '',
-    faculty: '',
-    sessionCount: 0,
-    university: ''
+    userName: '',
+    userRole: '',
   });
 
   // Fetching the user data when the component mounts
@@ -70,15 +63,8 @@ function StaffList() {
   const handleClose = () => {
     setOpen(false);
     setCurrentStaff({
-      id: '',
-      name: '',
-      title: '',
-      role: '',
-      level: '',
-      department: '',
-      faculty: '',
-      sessionCount: 0,
-      university: ''
+      userName: '',
+      userRole: '',
     });
   };
 
@@ -86,11 +72,11 @@ function StaffList() {
     setCurrentStaff({ ...currentStaff, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (currentStaff.id) {
-      setStaff(staff.map(s => 
-        s.id === currentStaff.id ? currentStaff : s
-      ));
+      await ApiService.updateUser(currentStaff)
+      const response = await ApiService.viewStaff(); // Assuming it fetches the staff data
+      setStaff(response);
     } else {
       setStaff([...staff, { ...currentStaff, id: Date.now() }]);
     }
@@ -116,14 +102,8 @@ function StaffList() {
 
   const handleDownloadExcel = () => {
     const worksheet = XLSX.utils.json_to_sheet(filteredStaff.map(staffMember => ({
-      'Name': staffMember.name,
-      'Title': staffMember.title,
-      'Role': staffMember.role,
-      'Level': staffMember.level,
-      'Department': staffMember.department,
-      'Faculty': staffMember.faculty,
-      'Session Count': staffMember.sessionCount,
-      'University': staffMember.university
+      'Name': staffMember.userName,
+      'Role': staffMember.userRole,
     })));
     
     const workbook = XLSX.utils.book_new();
@@ -146,13 +126,7 @@ function StaffList() {
         const formattedData = jsonData.map((row, index) => ({
           id: Date.now() + index,
           name: row['Name'] || '',
-          title: row['Title'] || '',
           role: row['Role'] || '',
-          level: row['Level'] || '',
-          department: row['Department'] || '',
-          faculty: row['Faculty'] || '',
-          sessionCount: row['Session Count'] || 0,
-          university: row['University'] || ''
         }));
 
         setStaff(prevStaff => [...prevStaff, ...formattedData]);
@@ -233,7 +207,6 @@ function StaffList() {
         <Table>
           <TableHead>
             <TableRow>
-            <TableCell>id</TableCell>
               <TableCell>Name</TableCell>
               <TableCell>Role</TableCell>
             </TableRow>
@@ -241,7 +214,6 @@ function StaffList() {
           <TableBody>
             {filteredStaff.map((staffMember) => (
               <TableRow key={staffMember._id}>
-                <TableCell>{staffMember._id}</TableCell>
                 <TableCell>{staffMember.userName}</TableCell>
                 <TableCell>{staffMember.userRole}</TableCell>
                 <TableCell>
@@ -258,67 +230,18 @@ function StaffList() {
         <DialogTitle>{currentStaff.id ? 'Edit Staff' : 'Add Staff'}</DialogTitle>
         <DialogContent>
           <TextField
-            name="name"
+            name="userName" // Update to match state key
             label="Name"
             fullWidth
-            value={currentStaff.name}
+            value={currentStaff.userName}
             onChange={handleInputChange}
             margin="normal"
           />
           <TextField
-            name="title"
-            label="Title"
-            fullWidth
-            value={currentStaff.title}
-            onChange={handleInputChange}
-            margin="normal"
-          />
-          <TextField
-            name="role"
+            name="userRole" // Update to match state key
             label="Role"
             fullWidth
-            value={currentStaff.role}
-            onChange={handleInputChange}
-            margin="normal"
-          />
-          <TextField
-            name="level"
-            label="Level"
-            fullWidth
-            value={currentStaff.level}
-            onChange={handleInputChange}
-            margin="normal"
-          />
-          <TextField
-            name="department"
-            label="Department"
-            fullWidth
-            value={currentStaff.department}
-            onChange={handleInputChange}
-            margin="normal"
-          />
-          <TextField
-            name="faculty"
-            label="Faculty"
-            fullWidth
-            value={currentStaff.faculty}
-            onChange={handleInputChange}
-            margin="normal"
-          />
-          <TextField
-            name="sessionCount"
-            label="Session Count"
-            fullWidth
-            value={currentStaff.sessionCount}
-            onChange={handleInputChange}
-            margin="normal"
-            type="number"
-          />
-          <TextField
-            name="university"
-            label="University"
-            fullWidth
-            value={currentStaff.university}
+            value={currentStaff.userRole}
             onChange={handleInputChange}
             margin="normal"
           />
