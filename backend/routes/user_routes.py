@@ -71,7 +71,7 @@ async def CreateUser(user: UserDb, current_user: Tuple[str, Any] = Depends(get_c
 async def UpdateUser(userdto: UserDto, current_user: Tuple[str, Any] = Depends(get_current_user)):
     username, role = current_user
 
-    if ( username != userdto.userName):
+    if ( username != userdto.userName and role != 1):
         raise HTTPException(status_code=403, detail="Only account owner can update their profile")
         
     existing_user = userCollection.find_one({"userName": userdto.userName})

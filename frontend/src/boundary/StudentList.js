@@ -51,7 +51,7 @@ function StudentList() {
     examinerId2: '',
     examinerId3: '',
     chairpersonId: '',
-    postponeStatus: false, 
+    postponeStatus: 'ONGOING', 
     lockStatus: false, 
   });
 
@@ -103,7 +103,7 @@ function StudentList() {
       examinerId2: studentData.examinerId2 || '',
       examinerId3: studentData.examinerId3 || '',
       chairpersonId: studentData.chairpersonId || '',
-      postponeStatus: studentData.postponeStatus || false,
+      postponeStatus: studentData.postponeStatus || 'ONGOING',
       lockStatus: studentData.lockStatus || false,
     });
   }
@@ -185,28 +185,32 @@ function StudentList() {
 
   return (
     <>
-      <Button variant="contained" color="primary" onClick={handleOpen}>
-        Add Evaluation
-      </Button>
-      <Button variant="outlined" component="label">
-        Upload Excel
-        <input
-          type="file"
-          accept=".xlsx,.xls"
-          hidden
-          onChange={handleExcelUpload}
-        />
-      </Button>
-      
-      <FormControlLabel
-        control={
-          <Checkbox
-            checked={filterPostponedFSE}
-            onChange={(e) => setFilterPostponedFSE(e.target.checked)}
+     <Stack direction="row" spacing={2} mb={2}>
+        <Button variant="contained" color="primary" onClick={handleOpen}>
+          Add Evaluation
+        </Button>
+        <Button variant="outlined" component="label">
+          Upload Excel
+          <input
+            type="file"
+            accept=".xlsx,.xls"
+            hidden
+            onChange={handleExcelUpload}
           />
-        }
-        label="Show only postponed FSE"
-      />
+        </Button>
+        
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={filterPostponedFSE}
+              onChange={(e) => setFilterPostponedFSE(e.target.checked)}
+            />
+          }
+          label="Show only postponed FSE"
+        />
+      </Stack>
+
+
       
       {loading && <CircularProgress />}
       {error && <Typography color="error">Error: {error}</Typography>}
@@ -218,6 +222,7 @@ function StudentList() {
               <TableCell>Name</TableCell>
               <TableCell>Research Title</TableCell>
               <TableCell>Program</TableCell>
+              <TableCell>Semester</TableCell>
               <TableCell>Evaluation Type</TableCell>
               <TableCell>Postpone FSE</TableCell>
               <TableCell>Supervisor</TableCell>
@@ -235,6 +240,7 @@ function StudentList() {
                 <TableCell onClick={() => handleOpenUpdate(student._id)}>{student.studentId}</TableCell>
                 <TableCell onClick={() => handleOpenUpdate(student._id)}>{student.researchTitle}</TableCell>
                 <TableCell>{student.programType}</TableCell>
+                <TableCell>{student.semester}</TableCell>
                 <TableCell>{student.evaluationType}</TableCell>
                 {/* <TableCell>
                   <FormControlLabel
@@ -242,7 +248,7 @@ function StudentList() {
                     label="Postpone"
                   />
                 </TableCell> */}
-                <TableCell>{student.postponeStatus ? "POSTPONED" : "ONGOING"}</TableCell>
+                <TableCell>{student.postponeStatus}</TableCell>
                 <TableCell>{student.supervisorId}</TableCell>
                 <TableCell>{student.coSupervisorId}</TableCell>
                 <TableCell>{student.examinerId1}</TableCell>
@@ -432,7 +438,7 @@ function StudentList() {
             <InputLabel>Postpone FSE</InputLabel>
             <Select
               name="postponeStatus"
-              value={currentStudent.postponeStatus ? "POSTPONED" : "ONGOING"} // Explicitly handle undefined
+              value={currentStudent.postponeStatus} // Explicitly handle undefined
               onChange={handleInputChange}
               label="Co-Supervisor"
               disabled={role === '1' || role === '2'} 
@@ -480,7 +486,7 @@ function StudentList() {
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
           <Button onClick={handleSubmit} variant="contained" color="primary">
-            {currentStudent.id ? 'Save' : 'Add'}
+            {currentStudent._id ? 'Save' : 'Add'}
           </Button>
         </DialogActions>
       </Dialog>

@@ -73,7 +73,7 @@ function StaffList() {
   };
 
   const handleSubmit = async () => {
-    if (currentStaff.id) {
+    if (currentStaff._id) {
       await ApiService.updateUser(currentStaff)
       const response = await ApiService.viewStaff(); // Assuming it fetches the staff data
       setStaff(response);

@@ -47,24 +47,29 @@ function StudentOverviewChart({ students }) {
   const chartRef = useRef(null);
   const containerRef = useRef(null);
 
-  // Get unique programs and semesters
-  const programs = [...new Set(students.map(student => student.program))].sort();
-  const semesters = [...new Set(students.map(student => student.currentSemester))].sort();
+  // Unique programs and semesters
+  const programs = [...new Set(students.map(student => student.programType))].sort();
+// Filter and process semesters
+  const semesters = [...new Set(students
+    .map(student => student.semester)
+    .filter(semester => semester))] // Remove empty or invalid semesters
+    .sort();
 
-  // Calculate totals for each program
-  const programTotals = programs.map(program => 
-    students.filter(student => student.program === program).length
+
+  // Program totals
+  const programTotals = programs.map(program =>
+    students.filter(student => student.programType === program).length
   );
 
   // Prepare data for the chart
   const data = {
     labels: programs,
     datasets: semesters.map((semester, index) => ({
-      label: `Semester ${semester}`,
-      data: programs.map(program => {
+      label: `Semester ${semester}`, // Format the label properly
+      data: programs.map(programType => {
         return students.filter(student => 
-          student.program === program && 
-          student.currentSemester === semester
+          student.programType === programType && 
+          student.semester === semester // Match the correct semester field
         ).length;
       }),
       backgroundColor: semesterColors[index % semesterColors.length],
@@ -81,12 +86,8 @@ function StudentOverviewChart({ students }) {
         title: {
           display: true,
           text: 'Program',
-          font: {
-            size: 14,
-            weight: 'bold'
-          }
         },
-        stacked: true
+        stacked: true,
       },
       y: {
         beginAtZero: true,
@@ -94,51 +95,32 @@ function StudentOverviewChart({ students }) {
         title: {
           display: true,
           text: 'Number of Students',
-          font: {
-            size: 14,
-            weight: 'bold'
-          }
-        }
-      }
+        },
+      },
     },
     plugins: {
       legend: {
         position: 'top',
-        title: {
-          display: true,
-          text: 'Semester',
-          font: {
-            size: 14,
-            weight: 'bold'
-          }
-        }
       },
       title: {
         display: true,
         text: 'Student Overview by Program',
-        font: {
-          size: 16,
-          weight: 'bold'
-        }
       },
       tooltip: {
         callbacks: {
-          footer: (tooltipItems) => {
-            const index = tooltipItems[0].dataIndex;
-            return `Total: ${programTotals[index]}`;
-          }
-        }
-      }
-    }
+          footer: tooltipItems => {
+            const programIndex = tooltipItems[0].dataIndex;
+            return `Total: ${programTotals[programIndex]}`;
+          },
+        },
+      },
+    },
   };
 
-  // Add plugin to display total on top of bars
   const totalLabelsPlugin = {
     id: 'totalLabels',
     afterDatasetsDraw(chart) {
       const { ctx, data, scales } = chart;
-      const { x, y } = scales;
-
       ctx.save();
       ctx.font = 'bold 12px Arial';
       ctx.textAlign = 'center';
@@ -146,26 +128,22 @@ function StudentOverviewChart({ students }) {
       ctx.fillStyle = '#000';
 
       programTotals.forEach((total, index) => {
-        const xPos = x.getPixelForValue(data.labels[index]);
-        const yPos = y.getPixelForValue(total);
+        const xPos = scales.x.getPixelForValue(data.labels[index]);
+        const yPos = scales.y.getPixelForValue(total);
         ctx.fillText(total, xPos, yPos - 5);
       });
       ctx.restore();
-    }
+    },
   };
 
   const handleDownload = async () => {
     if (containerRef.current) {
       try {
-        // Create canvas from the entire container
         const canvas = await html2canvas(containerRef.current, {
           backgroundColor: '#ffffff',
-          scale: 2, // Increase quality
-          logging: false,
-          useCORS: true
+          scale: 2,
+          useCORS: true,
         });
-
-        // Create download link
         const link = document.createElement('a');
         link.download = 'student-overview.png';
         link.href = canvas.toDataURL('image/png');
@@ -178,13 +156,11 @@ function StudentOverviewChart({ students }) {
 
   return (
     <Box ref={containerRef}>
-      <Card sx={{ p: 2, mb: 3 }}>
+      <Card>
         <Stack direction="row" alignItems="center" spacing={2} mb={2}>
-          <Typography variant="h6" component="h2">
-            Student Overview
-          </Typography>
-          <Button 
-            variant="outlined" 
+          <Typography variant="h6">Student Overview</Typography>
+          <Button
+            variant="outlined"
             startIcon={<Download />}
             onClick={handleDownload}
             sx={{ ml: 'auto' }}
@@ -194,20 +170,13 @@ function StudentOverviewChart({ students }) {
         </Stack>
         <CardContent>
           <div style={{ height: '400px', width: '100%' }}>
-            <Bar
-              ref={chartRef}
-              data={data}
-              options={options}
-              plugins={[totalLabelsPlugin]}
-            />
+            <Bar ref={chartRef} data={data} options={options} plugins={[totalLabelsPlugin]} />
           </div>
         </CardContent>
       </Card>
-      
-      {/* Summary Table */}
-      <Card sx={{ p: 2 }}>
+      <Card>
         <TableContainer>
-          <Table size="small">
+          <Table>
             <TableHead>
               <TableRow>
                 <TableCell><strong>Semester</strong></TableCell>
@@ -219,28 +188,24 @@ function StudentOverviewChart({ students }) {
               </TableRow>
             </TableHead>
             <TableBody>
-              {semesters.map((semester) => (
+              {semesters.map(semester => (
                 <TableRow key={semester}>
                   <TableCell>Semester {semester}</TableCell>
                   {programs.map(program => (
                     <TableCell key={`${semester}-${program}`} align="center">
-                      {students.filter(s => 
-                        s.program === program && 
-                        s.currentSemester === semester
+                      {students.filter(student =>
+                        student.programType === program &&
+                        student.semester === semester
                       ).length}
                     </TableCell>
                   ))}
                 </TableRow>
               ))}
               <TableRow>
-                <TableCell sx={{ fontWeight: 'bold' }}>Total</TableCell>
-                {programs.map(program => (
-                  <TableCell 
-                    key={`total-${program}`} 
-                    align="center" 
-                    sx={{ fontWeight: 'bold' }}
-                  >
-                    {programTotals[programs.indexOf(program)]}
+                <TableCell><strong>Total</strong></TableCell>
+                {programs.map((program, index) => (
+                  <TableCell key={program} align="center">
+                    {programTotals[index]}
                   </TableCell>
                 ))}
               </TableRow>
@@ -253,4 +218,3 @@ function StudentOverviewChart({ students }) {
 }
 
 export default StudentOverviewChart;
-
