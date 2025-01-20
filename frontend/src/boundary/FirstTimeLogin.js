@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   TextField, 
   Button, 
@@ -10,12 +10,14 @@ import {
 } from '@mui/material';
 import { validatePassword } from '../utils/validation';
 import ApiService from '../controller/apiservice';
+import { useNavigate } from 'react-router-dom';
 
 function FirstTimeLogin({ id }) {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -39,6 +41,16 @@ function FirstTimeLogin({ id }) {
     setSuccess(true);
 
   };
+
+  useEffect(() => {
+    if (success) {
+      // Delay navigation to give the user time to read the message
+      const timer = setTimeout(() => {
+        navigate('/dashboard');
+      }, 3000); // 3 seconds delay
+      return () => clearTimeout(timer); // Cleanup timer on component unmount
+    }
+  }, [success, navigate]);
 
   if (success) {
     return (

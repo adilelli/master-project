@@ -65,6 +65,12 @@ const ApiService = {
     return handleRequest(config);
   },
 
+  viewProfile: async () => {
+    const name = localStorage.getItem('userName');
+    const config = { method: 'get', url: `/user?userName=${name}` };
+    return handleRequest(config);
+  },
+
   viewUser: async (role) => {
     const config = { method: 'get', url: `/user?userRole=${role}` };
     return handleRequest(config);
