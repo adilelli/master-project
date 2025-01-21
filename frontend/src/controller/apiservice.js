@@ -139,6 +139,16 @@ const ApiService = {
     return handleRequest(config);
   },
 
+  viewExaminerCount: async (userName) => {
+    const config = { method: 'get', url: `/evaluation/examiner` };
+    return handleRequest(config);
+  },
+
+  viewChairpersonCount: async (userName) => {
+    const config = { method: 'get', url: `/evaluation/chairperson` };
+    return handleRequest(config);
+  },
+
   addOrUpdateSupervisor: async (evaluationId, supervisorData) => {
     const config = {
       method: 'put',

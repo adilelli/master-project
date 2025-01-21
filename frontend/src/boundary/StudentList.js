@@ -27,6 +27,7 @@ import {
   Typography
 } from '@mui/material';  
 import { useDashboard } from '../context/DashboardContext';
+import { Download, Upload } from 'lucide-react';
 
 function StudentList() {
   const { students = [], setStudents, loading, error } = useDashboard();
@@ -52,7 +53,7 @@ function StudentList() {
     examinerId3: '',
     chairpersonId: '',
     postponeStatus: 'ONGOING', 
-    lockStatus: false, 
+    lockStatus: 'UNLOCK', 
   });
 
   // Fetch evaluations when the component mounts
@@ -103,7 +104,7 @@ function StudentList() {
       examinerId3: studentData.examinerId3 || '',
       chairpersonId: studentData.chairpersonId || '',
       postponeStatus: studentData.postponeStatus || 'ONGOING',
-      lockStatus: studentData.lockStatus || false,
+      lockStatus: studentData.lockStatus || 'UNLOCK',
     });
   }
     setOpen(true)
@@ -127,8 +128,8 @@ function StudentList() {
       examiner2: '',
       examiner3: '',
       chairperson: '',
-      postponeFSE: false, 
-      lockStatus: false, 
+      postponeFSE: 'ONGOING', 
+      lockStatus: 'UNLOCK', 
     });
   };
 
@@ -183,6 +184,49 @@ function StudentList() {
     handleClose();
   };
 
+  const handleDownloadExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(students.map(student => ({
+      'Name': student.studentId,
+      'Research Title': student.researchTitle,
+      'Program': student.programType,
+      'Semester': student.semester,
+      'Evaluation Type': student.evaluationType,
+      'Postpone FSE': student.postponeStatus,
+      'Supervisor': student.supervisorId,
+      'Co Supervisor': student.coSupervisorId,
+      'Examiner1': student.examinerId1,
+      'Examiner2': student.examinerId2,
+      'Examiner3': student.examinerId3,
+      'Chairperson': student.chairpersonId,
+      'Lock Status': student.lockStatus,
+    })));
+    
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Staff');
+    XLSX.writeFile(workbook, 'student_list.xlsx');
+  };
+
+  const handleDownloadExaminer = async () => {
+    const response = await ApiService.viewExaminerCount();
+    const worksheet = XLSX.utils.json_to_sheet(
+      Object.entries(response.viewModel).map(([name, count]) => ({ name, count }))
+    );
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Staff');
+    XLSX.writeFile(workbook, 'examiner_list.xlsx');
+  }
+
+    const handleDownloadChairperson = async () => {
+      const response = await ApiService.viewChairpersonCount();
+      const worksheet = XLSX.utils.json_to_sheet(
+        Object.entries(response.viewModel).map(([name, count]) => ({ name, count }))
+      );
+      
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Staff');
+      XLSX.writeFile(workbook, 'chairperson_list.xlsx');
+    };
+
   const filteredStudents = filterPostponedFSE
     ? students.filter(student => student.postponeFSE)
     : students;
@@ -193,7 +237,7 @@ function StudentList() {
         <Button variant="contained" color="primary" onClick={handleOpen}>
           Add Evaluation
         </Button>
-        <Button variant="outlined" component="label">
+        <Button variant="outlined" startIcon={<Upload />} component="label">
           Upload Excel
           <input
             type="file"
@@ -202,7 +246,31 @@ function StudentList() {
             onChange={handleExcelUpload}
           />
         </Button>
-        
+        {role === "2" && (
+          <>
+            <Button 
+              variant="outlined" 
+              startIcon={<Download />}
+              onClick={handleDownloadExcel}
+            >
+              Download Evaluation
+            </Button>
+            <Button 
+              variant="outlined" 
+              startIcon={<Download />}
+              onClick={handleDownloadExaminer}
+            >
+              Download Examiner
+            </Button>
+            <Button 
+              variant="outlined" 
+              startIcon={<Download />}
+              onClick={handleDownloadChairperson}
+            >
+              Download Chairperson
+            </Button>
+          </>
+        )}
         {/* <FormControlLabel
           control={
             <Checkbox
@@ -259,7 +327,7 @@ function StudentList() {
                 <TableCell>{student.examinerId2}</TableCell>
                 <TableCell>{student.examinerId3}</TableCell>
                 <TableCell>{student.chairpersonId}</TableCell>
-                <TableCell>{String(student.lockStatus)}</TableCell>
+                <TableCell>{student.lockStatus}</TableCell>
                 <TableCell>
                   <Button onClick={() => handleOpenUpdate(student._id)}>Edit</Button>
                   {/* <Button onClick={() => handleDelete(staffMember.id)}>Delete</Button> */}
@@ -481,13 +549,13 @@ function StudentList() {
             <InputLabel>Lock Nomination</InputLabel>
             <Select
               name="lockStatus"
-              value={currentStudent.lockStatus || ''}
+              value={currentStudent.lockStatus}
               onChange={handleInputChange}
               label="Co-Supervisor"
               disabled={role !== '2' } 
             >
-              <MenuItem value={true}>True</MenuItem>
-              <MenuItem value={false}>False</MenuItem>
+              <MenuItem value="UNLOCK">UNLOCK</MenuItem>
+              <MenuItem value="LOCK">LOCK</MenuItem>
             </Select>
           </FormControl>
         </DialogContent>
