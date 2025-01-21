@@ -4,6 +4,7 @@ from bson.objectid import ObjectId
 from services.auth_services import get_current_user
 from dtos import chairpersonDto, evaluationDb, ResponseDto, evaluationDto, examinerDto, supervisorDto, map_evaluation
 from config import configEvaluation, configUser
+from collections import Counter
 
 # Initialize Router
 router = APIRouter()
@@ -58,11 +59,13 @@ async def UpdateEvaluation(evaluationdto: evaluationDto, evaluationId: str, curr
         supervisor = userCollection.find_one({"userName": evaluationdto.supervisorId})
         if not supervisor:
             raise HTTPException(status_code=400, detail="Invalid supervisor ID.")
+        eval['supervisorId'] = evaluationdto.supervisorId
 
     if evaluationdto.coSupervisorId:
         co_supervisor = userCollection.find_one({"userName": evaluationdto.coSupervisorId})
         if not co_supervisor:
             raise HTTPException(status_code=400, detail="Invalid co-supervisor ID.")
+        eval['coSupervisorId'] = evaluationdto.coSupervisorId
         
     if evaluationdto.supervisorId and evaluationdto.coSupervisorId and evaluationdto.supervisorId == evaluationdto.coSupervisorId:
         raise HTTPException(status_code=400, detail="Supervisor and Co Supervisor cannot the same")
@@ -303,6 +306,7 @@ async def AddChairPerson(evaluationId: str, chairpersondto: chairpersonDto, curr
     unique_ids = set(ids)
     if len(ids) != len(unique_ids):
         raise HTTPException(status_code=400, detail="Chairperson must be different from the supervisor, co-supervisor or examiners")
+    eval['lockStatus'] = chairpersondto.lockStatus
 
     # Update evaluation
     result = evalCollection.update_one({"_id": ObjectId(evaluationId)}, {"$set": eval})
@@ -462,3 +466,42 @@ async def lock_nomination(
     eval['_id'] = str(eval['_id'])
 
     return ResponseDto(response="Evaluation updated successfully", viewModel = eval, status=True)
+
+
+@router.get("/chairperson", tags=["evaluation"])
+async def ViewChairperson():
+    # Query the database using the constructed filter
+    evaluations = evalCollection.find()
+    chairperson_ids = []
+    for evaluation in evaluations:
+        if evaluation.get("chairpersonId"):  # Check if chairpersonId exists and is not None
+            chairperson_ids.append(evaluation.get("chairpersonId"))  # Use append, not push in Python
+
+    # Count occurrences of each chairpersonId
+    result = Counter(chairperson_ids)
+    
+    # # Return the results, converting _id to string
+    # result = [{**evaluation, "_id": str(evaluation["_id"])} for evaluation in evaluations]
+    
+    return ResponseDto(response="Evaluation updated successfully", viewModel = result, status=True)
+
+@router.get("/examiner", tags=["evaluation"])
+async def ViewExaminer():
+    # Query the database using the constructed filter
+    evaluations = evalCollection.find()
+    examiner_ids = []
+    for evaluation in evaluations:
+        if evaluation.get("examinerId1"):  # Check if chairpersonId exists and is not None
+            examiner_ids.append(evaluation.get("examinerId1"))  # Use append, not push in Python
+        if evaluation.get("examinerId2"):  # Check if chairpersonId exists and is not None
+            examiner_ids.append(evaluation.get("examinerId2"))  # Use append, not push in Python
+        if evaluation.get("examinerId3"):  # Check if chairpersonId exists and is not None
+            examiner_ids.append(evaluation.get("examinerId3"))  # Use append, not push in Python
+
+    # Count occurrences of each chairpersonId
+    result = Counter(examiner_ids)
+    
+    # # Return the results, converting _id to string
+    # result = [{**evaluation, "_id": str(evaluation["_id"])} for evaluation in evaluations]
+    
+    return ResponseDto(response="Evaluation updated successfully", viewModel = result, status=True)

@@ -80,7 +80,7 @@ function StaffList() {
       const response = await ApiService.viewStaff(); // Assuming it fetches the staff data
       setStaff(response);
     } else {
-      await ApiService.createUser(currentStaff.userName, '12345678'+ currentStaff.userName, currentStaff.userRole, currentStaff.email)
+      await ApiService.createUser(currentStaff.userName, currentStaff.userName, currentStaff.userRole, currentStaff.email)
       setStaff([...staff, { ...currentStaff, id: Date.now() }]);
     }
     handleClose();
@@ -138,7 +138,7 @@ function StaffList() {
           userName: row['Name'] || '',
           userRole: row['Role'] || 0,
           email: row['Email']|| '',
-          password: row['Password'] || '',
+          password: row['Email']|| '',
         }));
 
         console.log(JSON.stringify(createData))

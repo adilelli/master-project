@@ -30,7 +30,7 @@ class evaluationDb(BaseModel):
     examinerId3: Optional[str] = None  # FK
     researchTitle: Optional[str] = None
     chairpersonId: Optional[str] = None  # FK AP  P if S/C==P, 4 session
-    lockStatus: Optional[bool] = False
+    lockStatus: Optional[str] = "UNLOCK"
 
     class Config:
         orm_mode = True
@@ -62,7 +62,7 @@ class examinerDto(BaseModel):
 class chairpersonDto(BaseModel):
     semester: str      
     chairpersonId: str  # FK AP  P if S/C==P, 4 session
-    lockStatus: Optional[bool] = False
+    lockStatus: Optional[str] = "UNLOCK"
 
 class ResponseDto(BaseModel):
     response: str

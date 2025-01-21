@@ -45,7 +45,7 @@ function LoginPage() {
   
         if (login.viewModel.access_token) {
           const response = await ApiService.viewProfile();
-          if(response.firstTimer === true){
+          if(response[0].firstTimer === true){
             setIsFirstTimeLogin(true);
           }else{
             navigate('/dashboard');
