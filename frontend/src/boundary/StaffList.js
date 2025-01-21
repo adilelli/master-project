@@ -38,6 +38,7 @@ function StaffList() {
   const [currentStaff, setCurrentStaff] = useState({
     userName: '',
     userRole: '',
+    email:''
   });
 
   // Fetching the user data when the component mounts
@@ -65,6 +66,7 @@ function StaffList() {
     setCurrentStaff({
       userName: '',
       userRole: '',
+      email:''
     });
   };
 
@@ -78,6 +80,7 @@ function StaffList() {
       const response = await ApiService.viewStaff(); // Assuming it fetches the staff data
       setStaff(response);
     } else {
+      await ApiService.createUser(currentStaff.userName, '12345678'+ currentStaff.userName, currentStaff.userRole, currentStaff.email)
       setStaff([...staff, { ...currentStaff, id: Date.now() }]);
     }
     handleClose();
@@ -88,9 +91,9 @@ function StaffList() {
     handleOpen();
   };
 
-  const handleDelete = (id) => {
-    setStaff(staff.filter(s => s.id !== id));
-  };
+  // const handleDelete = (id) => {
+  //   setStaff(staff.filter(s => s.id !== id));
+  // };
 
   const handleRoleChange = (event) => {
     setSelectedRole(event.target.value);
@@ -104,6 +107,7 @@ function StaffList() {
     const worksheet = XLSX.utils.json_to_sheet(filteredStaff.map(staffMember => ({
       'Name': staffMember.userName,
       'Role': staffMember.userRole,
+      'Email': staffMember.email
     })));
     
     const workbook = XLSX.utils.book_new();
@@ -116,7 +120,7 @@ function StaffList() {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
         const data = new Uint8Array(e.target.result);
         const workbook = XLSX.read(data, { type: 'array' });
@@ -125,15 +129,34 @@ function StaffList() {
 
         const formattedData = jsonData.map((row, index) => ({
           id: Date.now() + index,
-          name: row['Name'] || '',
-          role: row['Role'] || '',
+          userName: row['Name'] || '',
+          userRole: row['Role'] || 0,
+          email: row['Email']|| ''
         }));
 
-        setStaff(prevStaff => [...prevStaff, ...formattedData]);
+        const createData = jsonData.map((row, index) => ({
+          userName: row['Name'] || '',
+          userRole: row['Role'] || 0,
+          email: row['Email']|| '',
+          password: row['Password'] || '',
+        }));
+
+        console.log(JSON.stringify(createData))
+        const created = await ApiService.createUsers(JSON.stringify(createData))
+        const response = await ApiService.viewStaff(); // Assuming it fetches the staff data
+        setStaff(response);
+
+        let errorMsg = ""
+
+        for(let i=0; i < created.errors.length; i++){
+          errorMsg = errorMsg + created.errors[i].error + " | "
+        }
+
+        // setStaff(prevStaff => [...prevStaff, ...formattedData]);
         setSnackbar({
           open: true,
-          message: `Successfully imported ${formattedData.length} staff members`,
-          severity: 'success'
+          message: `Created ${created.viewModel.length} users and error create ${created.errors.length} users. ${errorMsg}`,
+          severity: 'info'
         });
       } catch (error) {
         console.error('Error importing Excel file:', error);
@@ -185,7 +208,7 @@ function StaffList() {
         </Button>
       </Stack>
 
-      <Box sx={{ mb: 2 }}>
+      {/* <Box sx={{ mb: 2 }}>
         <FormControl sx={{ minWidth: 200 }}>
           <InputLabel>Filter by Role</InputLabel>
           <Select
@@ -201,7 +224,7 @@ function StaffList() {
             ))}
           </Select>
         </FormControl>
-      </Box>
+      </Box> */}
 
       <TableContainer component={Paper}>
         <Table>
@@ -209,6 +232,7 @@ function StaffList() {
             <TableRow>
               <TableCell>Name</TableCell>
               <TableCell>Role</TableCell>
+              <TableCell>Email</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -216,9 +240,10 @@ function StaffList() {
               <TableRow key={staffMember._id}>
                 <TableCell>{staffMember.userName}</TableCell>
                 <TableCell>{staffMember.userRole}</TableCell>
+                <TableCell>{staffMember.email}</TableCell>
                 <TableCell>
                   <Button onClick={() => handleEdit(staffMember)}>Edit</Button>
-                  <Button onClick={() => handleDelete(staffMember.id)}>Delete</Button>
+                  {/* <Button onClick={() => handleDelete(staffMember.id)}>Delete</Button> */}
                 </TableCell>
               </TableRow>
             ))}
@@ -242,6 +267,14 @@ function StaffList() {
             label="Role"
             fullWidth
             value={currentStaff.userRole}
+            onChange={handleInputChange}
+            margin="normal"
+          />
+          <TextField
+            name="email" // Update to match state key
+            label="Email"
+            fullWidth
+            value={currentStaff.email}
             onChange={handleInputChange}
             margin="normal"
           />

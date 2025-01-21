@@ -10,6 +10,7 @@ import StudentList from './boundary/StudentList';
 import { DashboardProvider } from './context/DashboardContext';
 import FirstTimeLogin from './boundary/FirstTimeLogin';
 import ResetPasswordVerification from './boundary/ResetPasswordVerification';
+import PasswordReset from './boundary/PasswordReset';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
             <Route path='/stafflist' element={<StaffList />} />
             <Route path='/studentlist' element={<StudentList />} />
             <Route path='/first-time-login' element={<FirstTimeLogin />} />
+            <Route path='/forgot-password' element={<PasswordReset />} />
             <Route path='/reset-password/:token' element={<ResetPasswordVerification />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

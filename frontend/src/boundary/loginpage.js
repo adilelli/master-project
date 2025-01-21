@@ -40,8 +40,8 @@ function LoginPage() {
         localStorage.setItem('userRole', decoded.role);
         localStorage.setItem('exp', decoded.exp);
   
-        const accessToken = localStorage.getItem('accessToken');
-        alert(accessToken);
+        // const accessToken = localStorage.getItem('accessToken');
+        alert("Success Login");
   
         if (login.viewModel.access_token) {
           const response = await ApiService.viewProfile();

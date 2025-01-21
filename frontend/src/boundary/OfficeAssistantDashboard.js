@@ -43,8 +43,21 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const role = localStorage.getItem('userRole');
   const username = localStorage.getItem('userName');
+  let roleString = "";
+
+  if(role === '1'){
+    roleString = "OFFICE ASSISTANT"
+  }else if(role === '2'){
+    roleString = "COORDINATOR"
+  }else if(role === '3'){
+    roleString = "ASSC PROF"
+  }else if(role === '4'){
+    roleString = "PROF"
+  }
+
 
   useEffect(() => {
+
     const fetchStudents = async () => {
       try {
         let response = [];
@@ -82,7 +95,7 @@ const Dashboard = () => {
               <Book />
             </IconButton>
             <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
-              FIRST STAGE EVALUATION
+              FIRST STAGE EVALUATION : { roleString }
             </Typography>
           </Box>
 
