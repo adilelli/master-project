@@ -1,5 +1,5 @@
 from enum import Enum
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
 from typing import List, Optional
 from datetime import datetime
 
@@ -10,6 +10,9 @@ class UserDb(BaseModel):
     attempt: Optional[int] = 0  # FK #max 3
     userRole: int #student=0, OA=1, PC=2, AP=3, P=4
     firstTimer: Optional[bool] = None  # FK
+    email: EmailStr
+    reset_token: Optional[str] = None  # Reset token for password recovery
+    reset_token_expiry: Optional[datetime] = None
 
     class Config:
         orm_mode = True
@@ -70,7 +73,7 @@ class UserDto(BaseModel):
     userName: str
     password: Optional[str] = Field(None, min_length=8, max_length=16, pattern="^[a-zA-Z0-9]*$")  # Alphanumeric 8-16
     userRole: Optional[int] = None  # student=0, OA=1, PC=2, AP=3, P=4
-
+    email: Optional[EmailStr] = None
 
 # Define the user roles with Enum for better readability
 class UserRole(Enum):
@@ -87,3 +90,11 @@ class TokenDto(BaseModel):
 class LoginDto(BaseModel):
     userName: str
     password: str
+
+class RequestResetDto(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordDto(BaseModel):
+    token: str
+    new_password: str

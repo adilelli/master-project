@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from "react-router-dom";
 import { 
   TextField, 
   Button, 
@@ -13,15 +14,30 @@ import ApiService from '../controller/apiservice';
 function PasswordReset({ onBack }) {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
+  const [success] = useState(false);
+  const [, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+    setLoading(true);
+
     try {
-      await ApiService.initiatePasswordReset(email);
-      setSuccess(true);
-    } catch (error) {
-      setError('Failed to initiate password reset. Please try again.');
+      // Make the API call
+      const response = await ApiService.resetPasswordRequest(email);
+      console.log(response.message)
+
+      // Extract the token from the response message
+      const token = response.message; // Assuming response.message contains the URL
+
+      // Navigate to the reset-password page with the token
+      navigate(`/reset-password/${token}`);
+    } catch (err) {
+      // Handle errors, e.g., show an error message
+      setError(err.response?.data?.detail || "An error occurred");
+    } finally {
+      setLoading(false);
     }
   };
 

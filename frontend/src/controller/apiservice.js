@@ -60,8 +60,31 @@ const ApiService = {
     return handleRequest(config);
   },
 
+  resetPasswordRequest: async (email) => {
+    const data = { email: email};
+    const config = { method: 'post', url: '/auth/reset-password/request', data };
+    return handleRequest(config);
+  },
+
+  verifyResetToken: async (token) => {
+    const config = { method: 'get', url: `/auth/reset-password/verify?token=${token}`};
+    return handleRequest(config);
+  },
+
+  resetPassword: async (token, password) => {
+    const data = { token: token , new_password: password};
+    const config = { method: 'post', url: '/auth/reset-password', data };
+    return handleRequest(config);
+  },
+
   viewStaff: async () => {
     const config = { method: 'get', url: '/user' };
+    return handleRequest(config);
+  },
+
+  viewProfile: async () => {
+    const name = localStorage.getItem('userName');
+    const config = { method: 'get', url: `/user?userName=${name}` };
     return handleRequest(config);
   },
 
@@ -70,9 +93,14 @@ const ApiService = {
     return handleRequest(config);
   },
 
-  createUser: async (userName, password, userRole) => {
-    const data = { userName, password, userRole };
+  createUser: async (userName, password, userRole, email) => {
+    const data = { userName, password, userRole, email };
     const config = { method: 'post', url: '/user', data };
+    return handleRequest(config);
+  },
+
+  createUsers: async (data) => {
+    const config = { method: 'post', url: '/user/list', data };
     return handleRequest(config);
   },
 
@@ -88,6 +116,11 @@ const ApiService = {
 
   prepareEvaluation: async (evaluationData) => {
     const config = { method: 'post', url: '/evaluation', data: evaluationData };
+    return handleRequest(config);
+  },
+
+  updateEvaluation: async (evaluationId, evaluationData) => {
+    const config = { method: 'put', url: `/evaluation/${evaluationId}`, data: evaluationData };
     return handleRequest(config);
   },
 

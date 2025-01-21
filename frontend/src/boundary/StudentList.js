@@ -65,7 +65,6 @@ function StudentList() {
     if (role === '1' || role === '2') {
       // Fetch all evaluations
       let response = await ApiService.viewEvaluations();
-      console.log(JSON.stringify(response))
       setStudents(response)
     } else if (role === '3' || role === '4') {
       // Fetch evaluations supervised by the user
@@ -163,8 +162,13 @@ function StudentList() {
   
 
   const handleSubmit = async () => {
+    console.log(role)
     if (role === '1') {
-      await ApiService.prepareEvaluation(currentStudent);
+      if(currentStudent._id){
+        await ApiService.updateEvaluation(currentStudent._id, currentStudent); 
+      }else{
+        await ApiService.prepareEvaluation(currentStudent);
+      }
     } else if (role === '2') {
       console.log(JSON.stringify(currentStudent))
       await ApiService.addOrUpdateChairperson(currentStudent._id, currentStudent)
@@ -199,7 +203,7 @@ function StudentList() {
           />
         </Button>
         
-        <FormControlLabel
+        {/* <FormControlLabel
           control={
             <Checkbox
               checked={filterPostponedFSE}
@@ -207,7 +211,7 @@ function StudentList() {
             />
           }
           label="Show only postponed FSE"
-        />
+        /> */}
       </Stack>
 
 
@@ -256,6 +260,10 @@ function StudentList() {
                 <TableCell>{student.examinerId3}</TableCell>
                 <TableCell>{student.chairpersonId}</TableCell>
                 <TableCell>{String(student.lockStatus)}</TableCell>
+                <TableCell>
+                  <Button onClick={() => handleOpenUpdate(student._id)}>Edit</Button>
+                  {/* <Button onClick={() => handleDelete(staffMember.id)}>Delete</Button> */}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -320,10 +328,10 @@ function StudentList() {
           </FormControl>
 
           <TextField
-            name="currentSemester"
+            name="semester"
             label="Current Semester"
             fullWidth
-            value={currentStudent.currentSemester || ''}
+            value={currentStudent.semester || ''}
             onChange={handleInputChange}
             margin="normal"
             disabled={role !== '1' }

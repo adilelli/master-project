@@ -82,3 +82,32 @@ async def send_email(to_email: str, subject: str, body: str):
             print(f"Email sent to {to_email}")
     except Exception as e:
         print(f"Failed to send email: {e}")
+
+
+# Security settings
+SECRET_KEY = "your_secret_key"
+ALGORITHM = "HS256"
+RESET_TOKEN_EXPIRE_MINUTES = 15
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+def create_reset_token(email: str):
+    expiry = datetime.utcnow() + timedelta(minutes=RESET_TOKEN_EXPIRE_MINUTES)
+    to_encode = {"sub": email, "exp": expiry}
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def verify_reset_token(token: str):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email = payload.get("sub")
+        if email is None:
+            raise HTTPException(status_code=400, detail="Invalid token")
+        return email
+    except JWTError:
+        raise HTTPException(status_code=400, detail="Invalid or expired token")
+
+
+def hash_password(password: str):
+    return pwd_context.hash(password)

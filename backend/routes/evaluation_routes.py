@@ -44,6 +44,43 @@ async def PrepareEvaluation(evaluationdto: evaluationDto, current_user: Tuple[st
     result = evalCollection.insert_one(evaluation.model_dump(exclude_none=True))
     return {"_id": str(result.inserted_id), "evaluation": evaluation}
 
+@router.put("/{evaluationId}", tags=["evaluation"], status_code=201)
+async def UpdateEvaluation(evaluationdto: evaluationDto, evaluationId: str, current_user: Tuple[str, Any] = Depends(get_current_user)):
+    username, role = current_user
+    if(role != 1):
+        raise HTTPException(status_code=403, detail = "Only Office Assistant can add evaluation")
+    
+    eval = evalCollection.find_one({"_id": ObjectId(evaluationId)})
+    if not eval:
+        raise HTTPException(status_code=404, detail="Evaluation not found.")
+        # Validate supervisor and co-supervisor IDs
+    if evaluationdto.supervisorId:
+        supervisor = userCollection.find_one({"userName": evaluationdto.supervisorId})
+        if not supervisor:
+            raise HTTPException(status_code=400, detail="Invalid supervisor ID.")
+
+    if evaluationdto.coSupervisorId:
+        co_supervisor = userCollection.find_one({"userName": evaluationdto.coSupervisorId})
+        if not co_supervisor:
+            raise HTTPException(status_code=400, detail="Invalid co-supervisor ID.")
+        
+    if evaluationdto.supervisorId and evaluationdto.coSupervisorId and evaluationdto.supervisorId == evaluationdto.coSupervisorId:
+        raise HTTPException(status_code=400, detail="Supervisor and Co Supervisor cannot the same")
+    
+    eval['studentId'] = evaluationdto.studentId
+    eval['programType'] = evaluationdto.programType
+    eval['evaluationType'] = evaluationdto.evaluationType
+    eval['semester'] = evaluationdto.semester
+    
+    result = evalCollection.update_one({"_id": ObjectId(evaluationId)}, {"$set": eval})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Failed to update evaluation.")
+    
+    # Convert ObjectId to string for serialization
+    eval['_id'] = str(eval['_id'])
+
+    return ResponseDto(response="Evaluation updated successfully", viewModel = eval, status=True)
+
 @router.put("/supervisor/{evaluationId}", response_model=ResponseDto, tags=["evaluation"])
 async def add_update_supervisor(
     evaluationId: str,

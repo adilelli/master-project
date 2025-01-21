@@ -13,6 +13,9 @@ import PasswordReset from './PasswordReset';
 import FirstTimeLogin from './FirstTimeLogin';
 import ApiService from '../controller/apiservice';
 import { jwtDecode } from "jwt-decode";
+import { ApiOutlined } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+
 
 function LoginPage() {
   const [id, setId] = useState('');
@@ -21,6 +24,7 @@ function LoginPage() {
   const [error, setError] = useState('');
   const [showPasswordReset, setShowPasswordReset] = useState(false);
   const [isFirstTimeLogin, setIsFirstTimeLogin] = useState(false);
+  const navigate = useNavigate();
   
 
   const handleSubmit = async (e) => {
@@ -36,11 +40,17 @@ function LoginPage() {
         localStorage.setItem('userRole', decoded.role);
         localStorage.setItem('exp', decoded.exp);
   
-        const accessToken = localStorage.getItem('accessToken');
-        alert(accessToken);
+        // const accessToken = localStorage.getItem('accessToken');
+        alert("Success Login");
   
         if (login.viewModel.access_token) {
-          setIsFirstTimeLogin(true);
+          const response = await ApiService.viewProfile();
+          if(response.firstTimer === true){
+            setIsFirstTimeLogin(true);
+          }else{
+            navigate('/dashboard');
+          }
+          
         } else {
           handleInvalidLogin();
         }
