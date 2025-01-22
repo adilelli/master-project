@@ -4,6 +4,8 @@ node_modules
 /utm
 /backend/myenv
 /myenv
+/backend/newenv
+/newenv
 node_modules
 node_modules/
 
