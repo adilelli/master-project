@@ -52,6 +52,13 @@ function ResetPasswordVerification() {
 
   if (success) {
     return (
+      <Box 
+            display="flex" 
+            justifyContent="center" 
+            alignItems="center" 
+            minHeight="100vh"
+            bgcolor="background.default"
+          >
       <Card sx={{ maxWidth: 400, width: '100%', margin: 'auto', mt: 4 }}>
         <CardContent>
           <Alert severity="success">
@@ -67,6 +74,7 @@ function ResetPasswordVerification() {
           </Button>
         </CardContent>
       </Card>
+    </Box>
     );
   }
 
