@@ -43,6 +43,13 @@ function PasswordReset({ onBack }) {
 
   if (success) {
     return (
+    <Box 
+      display="flex" 
+      justifyContent="center" 
+      alignItems="center" 
+      minHeight="100vh"
+      bgcolor="background.default"
+    >
       <Card sx={{ maxWidth: 400, width: '100%' }}>
         <CardContent>
           <Alert severity="success">
@@ -58,10 +65,18 @@ function PasswordReset({ onBack }) {
           </Button>
         </CardContent>
       </Card>
-    );
+      </Box>
+    )
   }
 
   return (
+    <Box 
+      display="flex" 
+      justifyContent="center" 
+      alignItems="center" 
+      minHeight="100vh"
+      bgcolor="background.default"
+    >
     <Card sx={{ maxWidth: 400, width: '100%' }}>
       <CardContent>
         <Typography variant="h5" component="h1" gutterBottom>
@@ -100,6 +115,7 @@ function PasswordReset({ onBack }) {
         </Button>
       </CardContent>
     </Card>
+    </Box>
   );
 }
 
