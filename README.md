@@ -21,10 +21,16 @@ python3 -m venv utm
 ````
 
 This will create a utm directory in your project folder.
-Activate the Virtual Environment:
+Activate the Virtual Environment (Mac and Linux):
 
 ````
 source utm/bin/activate
+````
+
+Activate the Virtual Environment (Windows):
+
+````
+utm\Scripts\activate
 ````
 
 After activation, you should see (venv) at the beginning of your terminal prompt, indicating that the virtual environment is active.
