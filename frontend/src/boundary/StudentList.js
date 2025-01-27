@@ -454,7 +454,7 @@ function StudentList() {
               value={currentStudent.examinerId1 || ''}
               onChange={handleInputChange}
               label="Examiner 1"
-              disabled={role === '1' || role === '2'} // Disable if role is not AP or P
+              disabled={role === '1' || role === '2' || currentStudent.lockStatus === "LOCK"} // Disable if role is not AP or P
             >
               {staff && staff.length > 0 ? (
                 staff.map((staffMember) => (
@@ -475,7 +475,7 @@ function StudentList() {
               value={currentStudent.examinerId2 || ''}
               onChange={handleInputChange}
               label="Examiner 2"
-              disabled={role === '1' || role === '2'} // Disable if role is not AP or P
+              disabled={role === '1' || role === '2' || currentStudent.lockStatus === "LOCK"} // Disable if role is not AP or P
             >
               {staff && staff.length > 0 ? (
                 staff.map((staffMember) => (
@@ -496,7 +496,7 @@ function StudentList() {
               value={currentStudent.examinerId3 || ''}
               onChange={handleInputChange}
               label="Examiner 3"
-              disabled={role === '1' || role === '2'} // Disable if role is not AP or P
+              disabled={role === '1' || role === '2' || currentStudent.lockStatus === "LOCK"} // Disable if role is not AP or P
             >
               {staff && staff.length > 0 ? (
                 staff.map((staffMember) => (
