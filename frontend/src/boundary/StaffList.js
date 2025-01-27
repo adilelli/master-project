@@ -122,27 +122,30 @@ function StaffList() {
     const reader = new FileReader();
     reader.onload = async (e) => {
       try {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
+        const dataEx = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(dataEx, { type: 'array' });
         const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+        console.log(workbook.SheetNames[0])
         const jsonData = XLSX.utils.sheet_to_json(worksheet);
+        console.log(jsonData)
 
-        const formattedData = jsonData.map((row, index) => ({
-          id: Date.now() + index,
-          userName: row['Name'] || '',
-          userRole: row['Role'] || 0,
-          email: row['Email']|| ''
-        }));
+        // const formattedData = jsonData.map((row, index) => ({
+        //   id: Date.now() + index,
+        //   userName: row['Name'] || '',
+        //   userRole: row['Role'] || 0,
+        //   email: row['Email']|| ''
+        // }));
 
-        const createData = jsonData.map((row, index) => ({
+        let createdData = []
+        createdData = jsonData.map((row, index) => ({
           userName: row['Name'] || '',
           userRole: row['Role'] || 0,
           email: row['Email']|| '',
-          password: row['Email']|| '',
+          password: row['Password']|| '',
         }));
 
-        console.log(JSON.stringify(createData))
-        const created = await ApiService.createUsers(JSON.stringify(createData))
+        console.log("excel : "+ JSON.stringify(createdData))
+        const created = await ApiService.createUsers(JSON.stringify(createdData))
         const response = await ApiService.viewStaff(); // Assuming it fetches the staff data
         setStaff(response);
 
