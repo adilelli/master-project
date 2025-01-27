@@ -30,7 +30,7 @@ class evaluationDb(BaseModel):
     examinerId3: Optional[str] = None  # FK
     researchTitle: Optional[str] = None
     chairpersonId: Optional[str] = None  # FK AP  P if S/C==P, 4 session
-    lockStatus: Optional[str] = "UNLOCK"
+    lockStatus: Optional[str] = "UNLOCK"  ##"LOCK" for locked
 
     class Config:
         orm_mode = True

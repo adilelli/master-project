@@ -102,7 +102,7 @@ async def add_update_supervisor(
     if not eval:
         raise HTTPException(status_code=404, detail="Evaluation not found.")
 
-    if eval.get('lockStatus') == "LOCKED": # Check if nomination is locked
+    if eval.get('lockStatus') == "LOCK": # Check if nomination is locked
         raise HTTPException(status_code=403, detail="Evaluation has been locked")
 
     # Validate supervisor and co-supervisor IDs
@@ -145,7 +145,7 @@ async def AddUpdateExaminer(evaluationId: str, examinerdto: examinerDto, current
     if not eval:
         raise HTTPException(status_code=404, detail="Evaluation not found.")
     
-    if eval.get('lockStatus') == "LOCKED": # Check if nomination is locked
+    if eval.get('lockStatus') == "LOCK": # Check if nomination is locked
         raise HTTPException(status_code=403, detail="Evaluation has been locked")
         
     if eval.get('supervisorId') is None and eval.get('coSupervisorId') is None:
@@ -233,7 +233,7 @@ async def AddChairPerson(evaluationId: str, chairpersondto: chairpersonDto, curr
     if not eval:
         raise HTTPException(status_code=404, detail="Evaluation not found")
 
-    # if eval.get('lockStatus') == "LOCKED":  # Check if nomination is locked
+    # if eval.get('lockStatus') == "LOCK":  # Check if nomination is locked
     #     raise HTTPException(status_code=403, detail="Evaluation has been locked")
 
     # Build query to check chairperson session limits
@@ -324,7 +324,7 @@ async def delete_evaluation(evaluationId: str, current_user: Any = Depends(get_c
 
     lockStatus = evalCollection.find_one({"_id": ObjectId(evaluationId)})
 
-    if lockStatus.get('lockStatus') == "LOCKED":  # Check if nomination is locked
+    if lockStatus.get('lockStatus') == "LOCK":  # Check if nomination is locked
         raise HTTPException(status_code=403, detail="Evaluation has been locked")
     
     result = evalCollection.delete_one({"_id": ObjectId(evaluationId)})
@@ -347,7 +347,7 @@ async def ViewFilteredEvaluation(evaluationId: str, current_user: Tuple[str, Any
     if not eval:
         raise HTTPException(status_code=404, detail="Evaluation not found")
 
-    if eval.get('lockStatus') == "LOCKED":  # Check if nomination is locked
+    if eval.get('lockStatus') == "LOCK":  # Check if nomination is locked
         raise HTTPException(status_code=403, detail="Evaluation has been locked")
     
     if(eval.get('supervisorId')):
