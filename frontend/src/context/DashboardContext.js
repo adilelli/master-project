@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
+import ApiService from '../controller/apiservice';
 
 export const DashboardContext = createContext();
 
@@ -15,10 +16,20 @@ export const DashboardProvider = ({ children }) => {
   const [staff, setStaff] = useState([]);
 
   useEffect(() => {
-    const storedStudents = JSON.parse(localStorage.getItem('students') || '[]');
-    const storedStaff = JSON.parse(localStorage.getItem('staff') || '[]');
-    setStudents(storedStudents);
-    setStaff(storedStaff);
+    const fetchData = async () => {
+      try {
+        const data = await ApiService.viewEvaluations();
+        console.log(data);
+        const storedStudents = JSON.parse(localStorage.getItem('students') || '[]');
+        const storedStaff = JSON.parse(localStorage.getItem('staff') || '[]');
+        setStudents(storedStudents);
+        setStaff(storedStaff);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -42,4 +53,3 @@ export const DashboardProvider = ({ children }) => {
     </DashboardContext.Provider>
   );
 };
-

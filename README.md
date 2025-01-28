@@ -1,37 +1,74 @@
 # master-project
 
-Live:
-https://adilelli.github.io/master-project/
+### Starting the app
+The app is written in FastAPI for backend and react for frontend. You need to start BOTH backend and FRONTEND
 
-Diagram:
-https://app.diagrams.net/#G1NLD_a5MVfA68jXr7IznYoMmJxi9wCBN6#%7B%22pageId%22%3A%22_pt5iccv_ON5JaFcto0D%22%7D
+#### Cloning the app into local device
+````
+cd /path/to/your/project
 
-Tables and chart:
-https://docs.google.com/spreadsheets/d/1RFjPAWf8vHNomkk3C8EVcOm0lKikBEK_pZzqP5uT-w8/edit?gid=0#gid=0
+git clone https://github.com/adilelli/master-project.git
+cd master-project
+````
+
+#### Backend
+
+You need to create a Virtual Environment:
+
+````
+cd backend
+python3 -m venv utm
+````
+
+This will create a utm directory in your project folder.
+Activate the Virtual Environment (Mac and Linux):
+
+````
+source utm/bin/activate
+````
+
+Activate the Virtual Environment (Windows):
+
+````
+utm\Scripts\activate
+````
+
+After activation, you should see (venv) at the beginning of your terminal prompt, indicating that the virtual environment is active.
+Install Packages (Optional): You can now install Python packages specific to this environment using pip:
+````
+
+pip install -r requirements.txt
+````
+
+Start the backend
+````
+uvicorn index:app --reload
+````
+
+#### Frontend
+
+Ensure that you're at master project directory in another terminal
+
+````
+cd frontend
+````
+
+Install npm 
+
+````
+npm i
+````
+
+Starting the frontend
+
+````
+npm start
+````
 
 
-SPMP 
-SPMP-FSES-SG-V1.00 https://docs.google.com/document/d/1FmEpxDnfQjuT7CiB-MBMGhl5jMbAxCUapMaBrmKU1fQ/edit?usp=sharing
 
 
-SRS
-SRS-FSES-SG-VX.XX https://docs.google.com/document/d/1SPPuPKfapCvnwngHQPKh03TzvScS7mPfgieQxSsM264/edit
-
-SDD
-
-
-STD
-
-
-Front End - Vue? React?
-
-Backend - Fast API
-
-STR
-
-
-
-#### To push to Github
+### To push to Github
 
 ```
 git add .
@@ -48,9 +85,14 @@ After that, you create a pull request to merge your changes into DEVELOP branch 
 
 Assign adil to review. Most likely I'll ask you to bump version number.
 
+### Diagram:
+https://app.diagrams.net/#G1NLD_a5MVfA68jXr7IznYoMmJxi9wCBN6#%7B%22pageId%22%3A%22_pt5iccv_ON5JaFcto0D%22%7D
 
-#### Configuration
-##### Identification methods 
+### Tables and chart:
+https://docs.google.com/spreadsheets/d/1RFjPAWf8vHNomkk3C8EVcOm0lKikBEK_pZzqP5uT-w8/edit?gid=0#gid=0
+
+### Configuration
+#### Identification methods 
 
 The numbering scheme for the components for the PG project use the following method:
 
@@ -86,7 +128,7 @@ Source Code
 
 ```
 
-##### Source Code Configuration Control
+#### Source Code Configuration Control
 
 ![Screenshot 2024-12-08 at 19 54 10](https://github.com/user-attachments/assets/6152d754-cd6f-4ba4-aec2-4e801646e3eb)
 

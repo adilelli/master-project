@@ -8,16 +8,29 @@ import {
   Alert, 
   Box 
 } from '@mui/material';
+import { useParams, useNavigate } from 'react-router-dom';
 import { validatePassword } from '../utils/validation';
 import ApiService from '../controller/apiservice';
-import { useNavigate } from 'react-router-dom';
 
-function FirstTimeLogin({ id }) {
+function ResetPasswordVerification() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const { token } = useParams();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Verify the token when the component mounts
+    const verifyToken = async () => {
+      try {
+        await ApiService.verifyResetToken(token);
+      } catch (error) {
+        setError('Invalid or expired token. Please try resetting your password again.');
+      }
+    };
+    verifyToken();
+  }, [token]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,38 +42,39 @@ function FirstTimeLogin({ id }) {
       setError('Passwords do not match.');
       return;
     }
-    // Here you would typically call an API to change the password
-    const updateUserData = {
-      "userName":localStorage.getItem('userName'),
-      "password": newPassword
-    };
-
-    console.log(updateUserData);
-
-    const response = await ApiService.updateUser(updateUserData);
-    setSuccess(true);
-
-  };
-
-  useEffect(() => {
-    if (success) {
-      // Delay navigation to give the user time to read the message
-      const timer = setTimeout(() => {
-        navigate('/dashboard');
-      }, 3000); // 3 seconds delay
-      return () => clearTimeout(timer); // Cleanup timer on component unmount
+    try {
+      await ApiService.resetPassword(token, newPassword);
+      setSuccess(true);
+    } catch (error) {
+      setError('Failed to reset password. Please try again.');
     }
-  }, [success, navigate]);
+  };
 
   if (success) {
     return (
-      <Card sx={{ maxWidth: 400, width: '100%' }}>
+      <Box 
+            display="flex" 
+            justifyContent="center" 
+            alignItems="center" 
+            minHeight="100vh"
+            bgcolor="background.default"
+          >
+      <Card sx={{ maxWidth: 400, width: '100%', margin: 'auto', mt: 4 }}>
         <CardContent>
           <Alert severity="success">
-            Your password has been changed successfully. You can now log in with your new password.
+            Your password has been reset successfully.
           </Alert>
+          <Button 
+            onClick={() => navigate('/')} 
+            fullWidth 
+            variant="contained" 
+            sx={{ mt: 2 }}
+          >
+            Go to Login
+          </Button>
         </CardContent>
       </Card>
+    </Box>
     );
   }
 
@@ -75,11 +89,8 @@ function FirstTimeLogin({ id }) {
       <Card sx={{ maxWidth: 400, width: '100%' }}>
         <CardContent>
           <Typography variant="h5" component="h1" gutterBottom>
-            Change Password
+            Reset Password
           </Typography>
-          <Alert severity="info" sx={{ mb: 2 }}>
-            You must change your password before continuing.
-          </Alert>
           <form onSubmit={handleSubmit}>
             <TextField
               fullWidth
@@ -111,7 +122,7 @@ function FirstTimeLogin({ id }) {
               color="primary"
               sx={{ mt: 3 }}
             >
-              Change Password
+              Reset Password
             </Button>
           </form>
         </CardContent>
@@ -120,5 +131,5 @@ function FirstTimeLogin({ id }) {
   );
 }
 
-export default FirstTimeLogin;
+export default ResetPasswordVerification;
 

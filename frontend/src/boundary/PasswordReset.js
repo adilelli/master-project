@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from "react-router-dom";
 import { 
   TextField, 
   Button, 
@@ -8,43 +9,51 @@ import {
   Alert, 
   Box 
 } from '@mui/material';
-import { validatePassword } from '../utils/validation';
 import ApiService from '../controller/apiservice';
 
 function PasswordReset({ onBack }) {
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [email, setEmail] = useState('');
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
+  const [success] = useState(false);
+  const [, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validatePassword(newPassword)) {
-      setError('Password must be 8-16 characters long and contain both letters and numbers.');
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      setError('Passwords do not match.');
-      return;
-    }
-    // Here you would typically call an API to reset the password
-    const updateUserData = {
-      "userName":localStorage.getItem('userName'),
-      "password": newPassword
-    };
+    setError("");
+    setLoading(true);
 
-    console.log(updateUserData);
+    try {
+      // Make the API call
+      const response = await ApiService.resetPasswordRequest(email);
+      console.log(response.message)
 
-    const response = await ApiService.updateUser(updateUserData);
-    setSuccess(true);
+      // Extract the token from the response message
+      const token = response.message; // Assuming response.message contains the URL
+
+      // Navigate to the reset-password page with the token
+      navigate(`/reset-password/${token}`);
+    } catch (err) {
+      // Handle errors, e.g., show an error message
+      setError(err.response?.data?.detail || "An error occurred");
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (success) {
     return (
+    <Box 
+      display="flex" 
+      justifyContent="center" 
+      alignItems="center" 
+      minHeight="100vh"
+      bgcolor="background.default"
+    >
       <Card sx={{ maxWidth: 400, width: '100%' }}>
         <CardContent>
           <Alert severity="success">
-            Your password has been reset successfully.
+            A password reset link has been sent to your email. Please check your inbox and follow the instructions.
           </Alert>
           <Button 
             onClick={onBack} 
@@ -56,10 +65,18 @@ function PasswordReset({ onBack }) {
           </Button>
         </CardContent>
       </Card>
-    );
+      </Box>
+    )
   }
 
   return (
+    <Box 
+      display="flex" 
+      justifyContent="center" 
+      alignItems="center" 
+      minHeight="100vh"
+      bgcolor="background.default"
+    >
     <Card sx={{ maxWidth: 400, width: '100%' }}>
       <CardContent>
         <Typography variant="h5" component="h1" gutterBottom>
@@ -69,19 +86,10 @@ function PasswordReset({ onBack }) {
           <TextField
             fullWidth
             margin="normal"
-            label="New Password"
-            type="password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            required
-          />
-          <TextField
-            fullWidth
-            margin="normal"
-            label="Confirm New Password"
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
+            label="Email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
           />
           {error && (
@@ -96,7 +104,7 @@ function PasswordReset({ onBack }) {
             color="primary"
             sx={{ mt: 3, mb: 2 }}
           >
-            Reset Password
+            Send Reset Link
           </Button>
         </form>
         <Button
@@ -107,6 +115,7 @@ function PasswordReset({ onBack }) {
         </Button>
       </CardContent>
     </Card>
+    </Box>
   );
 }
 

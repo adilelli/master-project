@@ -13,6 +13,9 @@ import PasswordReset from './PasswordReset';
 import FirstTimeLogin from './FirstTimeLogin';
 import ApiService from '../controller/apiservice';
 import { jwtDecode } from "jwt-decode";
+import { ApiOutlined } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+
 
 function LoginPage() {
   const [id, setId] = useState('');
@@ -21,32 +24,54 @@ function LoginPage() {
   const [error, setError] = useState('');
   const [showPasswordReset, setShowPasswordReset] = useState(false);
   const [isFirstTimeLogin, setIsFirstTimeLogin] = useState(false);
+  const navigate = useNavigate();
   
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    const login = await ApiService.login(id, password)
-    const decoded = jwtDecode(login.access_token);
-    localStorage.setItem('accessToken', login.access_token);
-    localStorage.setItem('userName', id);
-    localStorage.setItem('userRole', decoded.role);
-    localStorage.setItem('exp', decoded.exp);
-
-    const accessToken = localStorage.getItem('accessToken');
-    alert(accessToken);
-    // Simulating login check. In a real app, this would be an API call.
-    if (login.access_token) {
-      setIsFirstTimeLogin(true);
-    } else {
-      setAttempts(attempts - 1);
-      if (attempts > 1) {
-        setError(`Invalid credentials. ${attempts - 1} attempts remaining.`);
+  
+    try {
+      const login = await ApiService.login(id, password);
+      
+      if (login.viewModel != null) {
+        const decoded = jwtDecode(login.viewModel.access_token);
+        localStorage.setItem('accessToken', login.viewModel.access_token);
+        localStorage.setItem('userName', id);
+        localStorage.setItem('userRole', decoded.role);
+        localStorage.setItem('exp', decoded.exp);
+  
+        // const accessToken = localStorage.getItem('accessToken');
+        alert("Success Login");
+  
+        if (login.viewModel.access_token) {
+          const response = await ApiService.viewProfile();
+          if(response[0].firstTimer === true){
+            setIsFirstTimeLogin(true);
+          }else{
+            navigate('/dashboard');
+          }
+          
+        } else {
+          handleInvalidLogin();
+        }
       } else {
-        setError('No more attempts. Please use the "Forgot Password" option.');
+        handleInvalidLogin();
       }
+    } catch (error) {
+      console.error("An error occurred during login:", error);
+      setError("An error occurred during login:", error);
     }
   };
+  
+  const handleInvalidLogin = () => {
+    setAttempts(attempts - 1);
+    if (attempts > 1) {
+      setError(`Invalid credentials. ${attempts - 1} attempts remaining.`);
+    } else {
+      setError('No more attempts. Please use the "Forgot Password" option.');
+    }
+  };
+  
 
   if (isFirstTimeLogin) {
     return <FirstTimeLogin id={id} />;

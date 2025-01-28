@@ -1,71 +1,155 @@
-import React, { useState } from 'react';
-import { 
-  Container, 
-  Typography, 
-  Box, 
-  Tabs, 
-  Tab,
+import React, { useState, useEffect } from 'react';
+import {
+  Paper,
   Grid,
-  Paper
+  Typography,
+  Container,
+  AppBar,
+  Toolbar,
+  IconButton,
+  Tabs,
+  Tab,
+  Box,
+  CircularProgress,
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import { Book } from '@mui/icons-material';
+import StudentOverviewChart from '../Component/StudentOverviewChart';
 import StudentList from './StudentList';
 import StaffList from './StaffList';
-import { DashboardProvider, useDashboard } from '../context/DashboardContext';
+import { useDashboard } from '../context/DashboardContext';
+import ApiService from '../controller/apiservice';
 
-function Dashboard() {
-  const { students, staff } = useDashboard();
-  
+function TabPanel(props) {
+  const { children, value, index, ...other } = props;
+
   return (
-    <Grid container spacing={2}>
-      <Grid item xs={12} md={6}>
-        <Paper elevation={3} sx={{ p: 2 }}>
-          <Typography variant="h6" gutterBottom>Students Overview</Typography>
-          <Typography>Total Students: {students.length}</Typography>
-          <Typography>PhD Students: {students.filter(s => s.program === 'PhD').length}</Typography>
-          <Typography>MPhil Students: {students.filter(s => s.program === 'MPhil').length}</Typography>
-          <Typography>DSE Students: {students.filter(s => s.program === 'DSE').length}</Typography>
-        </Paper>
-      </Grid>
-      <Grid item xs={12} md={6}>
-        <Paper elevation={3} sx={{ p: 2 }}>
-          <Typography variant="h6" gutterBottom>Staff Overview</Typography>
-          <Typography>Total Staff: {staff.length}</Typography>
-          <Typography>Main Supervisors: {staff.filter(s => s.role === 'Main Supervisor').length}</Typography>
-          <Typography>Co-Supervisors: {staff.filter(s => s.role === 'Co-Supervisor').length}</Typography>
-          <Typography>Examiners: {staff.filter(s => s.role === 'Examiner').length}</Typography>
-          <Typography>Chairpersons: {staff.filter(s => s.role === 'Chairperson').length}</Typography>
-        </Paper>
-      </Grid>
-    </Grid>
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`tabpanel-${index}`}
+      aria-labelledby={`tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+    </div>
   );
 }
 
-function OfficeAssistantDashboard() {
-  const [activeTab, setActiveTab] = useState(0);
+const Dashboard = () => {
+  const theme = useTheme();
+  const { students, setStudents } = useDashboard();
+  const [tabValue, setTabValue] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const role = localStorage.getItem('userRole');
+  const username = localStorage.getItem('userName');
+  let roleString = "";
+
+  if(role === '1'){
+    roleString = "OFFICE ASSISTANT"
+  }else if(role === '2'){
+    roleString = "COORDINATOR"
+  }else if(role === '3'){
+    roleString = "ASSC PROF"
+  }else if(role === '4'){
+    roleString = "PROF"
+  }
+
+
+  useEffect(() => {
+
+    const fetchStudents = async () => {
+      try {
+        let response = [];
+        if (role === '1' || role === '2') {
+          // Fetch all evaluations
+          response = await ApiService.viewEvaluations();
+        } else if (role === '3' || role === '4') {
+          // Fetch evaluations supervised by the user
+          response = await ApiService.viewSupervisedEvaluations(username);
+        }
+
+        // Update the students state
+        setStudents(response);
+      } catch (error) {
+        console.error('Error fetching evaluations:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStudents();
+  }, [setStudents]);
 
   const handleTabChange = (event, newValue) => {
-    setActiveTab(newValue);
+    setTabValue(newValue);
   };
 
   return (
-    <DashboardProvider>
-      <Container maxWidth="lg">
-        <Typography variant="h4" component="h1" gutterBottom>
-          Office Assistant Dashboard
-        </Typography>
-        <Dashboard />
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3, mt: 3 }}>
-          <Tabs value={activeTab} onChange={handleTabChange}>
-            <Tab label="Student List" />
-            <Tab label="Staff List" />
-          </Tabs>
-        </Box>
-        {activeTab === 0 && <StudentList />}
-        {activeTab === 1 && <StaffList />}
-      </Container>
-    </DashboardProvider>
+    <Container maxWidth="lg">
+      <AppBar position="sticky" sx={{ bgcolor: theme.palette.primary.main }}>
+        <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
+          {/* Left Section: Icon and Title */}
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <IconButton edge="start" color="inherit" aria-label="menu" sx={{ mr: 2 }}>
+              <Book />
+            </IconButton>
+            <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
+              FIRST STAGE EVALUATION : { roleString }
+            </Typography>
+          </Box>
+
+          {/* Right Section: Username */}
+          <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+            {username}
+          </Typography>
+        </Toolbar>
+    </AppBar>
+
+
+      <Grid container spacing={3} sx={{ mt: 3 }}>
+        <Grid item xs={12}>
+          <Paper elevation={3} sx={{ padding: 3, backgroundColor: theme.palette.background.paper }}>
+            {loading ? (
+              <CircularProgress />
+            ) : (
+              <StudentOverviewChart students={students} />
+            )}
+          </Paper>
+        </Grid>
+
+        <Grid item xs={12}>
+          <Paper elevation={3} sx={{ padding: 3, backgroundColor: theme.palette.background.paper, marginBottom: 3 }}>
+            <Tabs
+              value={tabValue}
+              onChange={handleTabChange}
+              textColor="primary"
+              indicatorColor="primary"
+              aria-label="student and staff tabs"
+            >
+              <Tab label="Student List" id="tab-0" aria-controls="tabpanel-0" />
+              <Tab label="Staff List" id="tab-1" aria-controls="tabpanel-1" />
+            </Tabs>
+
+            <TabPanel value={tabValue} index={0}>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
+                Student Evaluation List
+              </Typography>
+              <StudentList students={students} />
+            </TabPanel>
+            <TabPanel value={tabValue} index={1}>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
+                Staff List
+              </Typography>
+              <div>
+                <StaffList/>
+              </div>
+            </TabPanel>
+          </Paper>
+        </Grid>
+      </Grid>
+    </Container>
   );
-}
+};
 
-export default OfficeAssistantDashboard;
-
+export default Dashboard;

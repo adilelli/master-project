@@ -1,38 +1,80 @@
-// api.js
 import axios from 'axios';
 
-// Base configuration for Axios
+// Base URL configuration
 const API_BASE_URL = 'http://127.0.0.1:8000';
-const AUTHORIZATION_TOKEN = localStorage.getItem('accessToken'); // Replace with your actual token
 
+// Create Axios instance
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
-    Authorization: AUTHORIZATION_TOKEN,
   },
   maxBodyLength: Infinity,
 });
 
-// Utility function for error handling
+// Add request interceptor to dynamically add token
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('accessToken'); // Fetch token dynamically
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor for error handling (optional)
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      // Handle token expiration or unauthorized access
+      alert('Unauthorized: Please log in again.');
+      // Redirect to login page or clear token
+      localStorage.removeItem('accessToken');
+      window.location.href = '/login'; // Replace with your login route
+    }
+    return Promise.reject(error);
+  }
+);
+
+// Utility function for handling API requests
 const handleRequest = async (config) => {
   try {
     const response = await axiosInstance(config);
-    console.log(response.data);
     return response.data;
   } catch (error) {
-    console.error(error);
-    throw error; // Propagate the error for handling by the caller
+    console.error('API Error:', error);
+    alert(error.response.data.detail); // Propagate error for caller to handle
   }
 };
 
-// API Methods
+// API Service Methods
 const ApiService = {
   login: async (username, password) => {
     const data = { userName: username, password };
     const config = { method: 'post', url: '/auth/login', data };
-    const res =  handleRequest(config);
-    return res;
+    return handleRequest(config);
+  },
+
+  resetPasswordRequest: async (email) => {
+    const data = { email: email};
+    const config = { method: 'post', url: '/auth/reset-password/request', data };
+    return handleRequest(config);
+  },
+
+  verifyResetToken: async (token) => {
+    const config = { method: 'get', url: `/auth/reset-password/verify?token=${token}`};
+    return handleRequest(config);
+  },
+
+  resetPassword: async (token, password) => {
+    const data = { token: token , new_password: password};
+    const config = { method: 'post', url: '/auth/reset-password', data };
+    return handleRequest(config);
   },
 
   viewStaff: async () => {
@@ -40,9 +82,25 @@ const ApiService = {
     return handleRequest(config);
   },
 
-  createUser: async (userName, password, userRole) => {
-    const data = { userName, password, userRole };
+  viewProfile: async () => {
+    const name = localStorage.getItem('userName');
+    const config = { method: 'get', url: `/user?userName=${name}` };
+    return handleRequest(config);
+  },
+
+  viewUser: async (role) => {
+    const config = { method: 'get', url: `/user?userRole=${role}` };
+    return handleRequest(config);
+  },
+
+  createUser: async (userName, password, userRole, email) => {
+    const data = { userName, password, userRole, email };
     const config = { method: 'post', url: '/user', data };
+    return handleRequest(config);
+  },
+
+  createUsers: async (data) => {
+    const config = { method: 'post', url: '/user/list', data };
     return handleRequest(config);
   },
 
@@ -61,8 +119,33 @@ const ApiService = {
     return handleRequest(config);
   },
 
+  updateEvaluation: async (evaluationId, evaluationData) => {
+    const config = { method: 'put', url: `/evaluation/${evaluationId}`, data: evaluationData };
+    return handleRequest(config);
+  },
+
   viewEvaluations: async () => {
-    const config = { method: 'get', url: '/evaluation' };
+    const config = { method: 'get', url: `/evaluation` };
+    return handleRequest(config);
+  },
+
+  viewEvaluationsbyId: async (id) => {
+    const config = { method: 'get', url: `/evaluation?evaluationId=${id}` };
+    return handleRequest(config);
+  },
+
+  viewSupervisedEvaluations: async (userName) => {
+    const config = { method: 'get', url: `/evaluation?supervisorId=${userName}` };
+    return handleRequest(config);
+  },
+
+  viewExaminerCount: async (userName) => {
+    const config = { method: 'get', url: `/evaluation/examiner` };
+    return handleRequest(config);
+  },
+
+  viewChairpersonCount: async (userName) => {
+    const config = { method: 'get', url: `/evaluation/chairperson` };
     return handleRequest(config);
   },
 
@@ -77,7 +160,7 @@ const ApiService = {
 
   addOrUpdateExaminer: async (evaluationId, examinerData) => {
     const config = {
-      method: 'post',
+      method: 'put',
       url: `/evaluation/examiner/${evaluationId}`,
       data: examinerData,
     };
@@ -93,11 +176,10 @@ const ApiService = {
     return handleRequest(config);
   },
 
-  lockNomination: async (evaluationId, lock = true) => {
+  lockNomination: async (evaluationId, lock) => {
     const config = {
       method: 'put',
-      url: `/evaluation/lock`,
-      params: { evaluationId, lock },
+      url: `/evaluation/lock?evaluationId=${evaluationId}&lock=${lock}`,
     };
     return handleRequest(config);
   },
