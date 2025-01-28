@@ -70,6 +70,27 @@ async def UpdateEvaluation(evaluationdto: evaluationDto, evaluationId: str, curr
     if evaluationdto.supervisorId and evaluationdto.coSupervisorId and evaluationdto.supervisorId == evaluationdto.coSupervisorId:
         raise HTTPException(status_code=400, detail="Supervisor and Co Supervisor cannot the same")
     
+    # Build query to check chairperson session limits
+    query = {}
+    if evaluationdto.semester:
+        query["semester"] = evaluationdto.semester
+    if eval.get('chairpersonId'):
+        query["chairpersonId"] = eval.get('chairpersonId')
+
+    # Debugging: Print the constructed query
+    print("Constructed Query:", query)
+
+    # Debugging: Print the matching documents
+    matching_docs = list(evalCollection.find(query))
+    print("Matching Documents:", matching_docs)
+
+    # Count the matching documents
+    evaluation_count = evalCollection.count_documents(query)
+    print("Count of Documents:", evaluation_count)
+
+    if evaluation_count > 4:
+        raise HTTPException(status_code=400, detail="Chairperson cannot chair more than 4 sessions per semester")
+    
     eval['studentId'] = evaluationdto.studentId
     eval['programType'] = evaluationdto.programType
     eval['evaluationType'] = evaluationdto.evaluationType
@@ -179,13 +200,16 @@ async def AddUpdateExaminer(evaluationId: str, examinerdto: examinerDto, current
         
         examiner1Role = examinerId1.get("userRole")
 
-    if(examiner1Role is not None and examiner1Role < 3):
-        raise HTTPException(status_code=400, detail="Examiner 1 must be at least an associate professor")
-    if(supervisorRole is not None and examiner1Role < supervisorRole):
-        raise HTTPException(status_code=400, detail="Examiner 1 must be a professor")
-
-    if(coSupervisorRole is not None and examiner1Role < coSupervisorRole):
-        raise HTTPException(status_code=400, detail="Examiner 1 must be a professor")
+        # Ensure examiner1Role is defined and assigned a value before using it
+        if examiner1Role is not None:
+            if examiner1Role < 3:
+                raise HTTPException(status_code=400, detail="Examiner 1 must be at least an associate professor")
+            
+            if supervisorRole is not None and examiner1Role < supervisorRole:
+                raise HTTPException(status_code=400, detail="Examiner 1 must be a professor")
+            
+            if coSupervisorRole is not None and examiner1Role < coSupervisorRole:
+                raise HTTPException(status_code=400, detail="Examiner 1 must be a professor")
     
     # Combine IDs for uniqueness check
     ids = [
@@ -196,10 +220,17 @@ async def AddUpdateExaminer(evaluationId: str, examinerdto: examinerDto, current
         examinerdto.examinerId3
     ]
 
+    # Remove null or empty values
+    filtered_ids = [id for id in ids if id]
+
     # Check for duplicates
-    unique_ids = set(ids)
-    if len(ids) != len(unique_ids):
-        raise HTTPException(status_code=400, detail="Examiners must be unique and different from the supervisor or co-supervisor")
+    unique_ids = set(filtered_ids)
+    if len(filtered_ids) != len(unique_ids):
+        raise HTTPException(
+            status_code=400, 
+            detail="Examiners must be unique and different from the supervisor or co-supervisor"
+        )
+
 
     eval['examinerId1'] = examinerdto.examinerId1
     eval['examinerId2'] = examinerdto.examinerId2
@@ -302,10 +333,16 @@ async def AddChairPerson(evaluationId: str, chairpersondto: chairpersonDto, curr
         chairpersondto.chairpersonId
     ]
 
+    # Remove null or empty values
+    filtered_ids = [id for id in ids if id]
+
     # Check for duplicates
-    unique_ids = set(ids)
-    if len(ids) != len(unique_ids):
-        raise HTTPException(status_code=400, detail="Chairperson must be different from the supervisor, co-supervisor or examiners")
+    unique_ids = set(filtered_ids)
+    if len(filtered_ids) != len(unique_ids):
+        raise HTTPException(
+            status_code=400, 
+            detail="Examiners must be unique and different from the supervisor or co-supervisor"
+        )
     eval['lockStatus'] = chairpersondto.lockStatus
 
     # Update evaluation
