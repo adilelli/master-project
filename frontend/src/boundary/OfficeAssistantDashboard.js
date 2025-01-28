@@ -142,7 +142,7 @@ const Dashboard = () => {
                 Staff List
               </Typography>
               <div>
-                {role === "1" ? <StaffList /> : <p>You do not have access to the staff list.</p>}
+                <StaffList/>
               </div>
             </TabPanel>
           </Paper>

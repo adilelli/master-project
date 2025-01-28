@@ -287,7 +287,7 @@ async def AddChairPerson(evaluationId: str, chairpersondto: chairpersonDto, curr
 
     if role != 2 :
         raise HTTPException(status_code=403, detail="Only coordinator can assign chairperson")
-    if evaluation_count > 4:
+    if evaluation_count > 3:
         raise HTTPException(status_code=400, detail="Chairperson cannot chair more than 4 sessions per semester")
     
     # Supervisor and co-supervisor roles validation
