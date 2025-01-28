@@ -40,6 +40,7 @@ function StaffList() {
     userRole: '',
     email:''
   });
+  const role = localStorage.getItem('userRole')
 
   // Fetching the user data when the component mounts
   useEffect(() => {
@@ -80,8 +81,10 @@ function StaffList() {
       const response = await ApiService.viewStaff(); // Assuming it fetches the staff data
       setStaff(response);
     } else {
+      console.log(JSON.stringify(currentStaff));
       await ApiService.createUser(currentStaff.userName, currentStaff.userName, currentStaff.userRole, currentStaff.email)
-      setStaff([...staff, { ...currentStaff, id: Date.now() }]);
+      const response = await ApiService.viewStaff(); // Assuming it fetches the staff data
+      setStaff(response);
     }
     handleClose();
   };
@@ -228,31 +231,32 @@ function StaffList() {
           </Select>
         </FormControl>
       </Box> */}
-
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Name</TableCell>
-              <TableCell>Role</TableCell>
-              <TableCell>Email</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filteredStaff.map((staffMember) => (
-              <TableRow key={staffMember._id}>
-                <TableCell>{staffMember.userName}</TableCell>
-                <TableCell>{staffMember.userRole}</TableCell>
-                <TableCell>{staffMember.email}</TableCell>
-                <TableCell>
-                  <Button onClick={() => handleEdit(staffMember)}>Edit</Button>
-                  {/* <Button onClick={() => handleDelete(staffMember.id)}>Delete</Button> */}
-                </TableCell>
+      {/* {role === "1" ?  */}
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Name</TableCell>
+                <TableCell>Role</TableCell>
+                <TableCell>Email</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {filteredStaff.map((staffMember) => (
+                <TableRow key={staffMember._id}>
+                  <TableCell>{staffMember.userName}</TableCell>
+                  <TableCell>{staffMember.userRole}</TableCell>
+                  <TableCell>{staffMember.email}</TableCell>
+                  <TableCell>
+                    <Button onClick={() => handleEdit(staffMember)}>Edit</Button>
+                    {/* <Button onClick={() => handleDelete(staffMember.id)}>Delete</Button> */}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      {/* // : <p>You do not have access to the staff list.</p>} */}
 
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
         <DialogTitle>{currentStaff.id ? 'Edit Staff' : 'Add Staff'}</DialogTitle>

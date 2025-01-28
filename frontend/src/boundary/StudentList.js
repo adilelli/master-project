@@ -163,7 +163,7 @@ function StudentList() {
   
 
   const handleSubmit = async () => {
-    console.log(role)
+    console.log('stucent: ' + JSON.stringify(currentStudent))
     if (role === '1') {
       if(currentStudent._id){
         await ApiService.updateEvaluation(currentStudent._id, currentStudent); 
@@ -234,10 +234,13 @@ function StudentList() {
   return (
     <>
      <Stack direction="row" spacing={2} mb={2}>
-        <Button variant="contained" color="primary" onClick={handleOpen}>
-          Add Evaluation
-        </Button>
-        <Button variant="outlined" startIcon={<Upload />} component="label">
+     {role === "1" ? 
+     <Button variant="contained" color="primary" onClick={handleOpen}>
+        Add Evaluation
+      </Button>
+     : <p></p>}
+        
+        {/* <Button variant="outlined" startIcon={<Upload />} component="label">
           Upload Excel
           <input
             type="file"
@@ -245,7 +248,7 @@ function StudentList() {
             hidden
             onChange={handleExcelUpload}
           />
-        </Button>
+        </Button> */}
         {role === "2" && (
           <>
             <Button 

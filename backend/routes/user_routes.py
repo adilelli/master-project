@@ -51,8 +51,8 @@ async def ViewMasterlist(userName: str = None, userRole: int = None, current_use
 @router.post("/", tags=["users"], status_code=201)
 async def CreateUser(user: UserDb, current_user: Tuple[str, Any] = Depends(get_current_user)):
     username, role = current_user
-    if(role != 1):
-        raise HTTPException(status_code=403, detail = "Only Office Assistant can create user")
+    if(role == 2):
+        raise HTTPException(status_code=403, detail = "Program Coordintor cannot create staff")
     # Validate password length
     if (user.userRole != 0 and (len(user.password) < 8 or len(user.password) > 16)):
         raise HTTPException(status_code=400, detail="Password must be between 8 and 16 characters")
