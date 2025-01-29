@@ -10,6 +10,8 @@ cd /path/to/your/project
 git clone https://github.com/adilelli/master-project.git
 cd master-project
 ````
+##### DB Connection
+You need MONGO_URI inside your environment file. Register with MongoDB Atlas to get the Mongo DB URI or alternatively you can use compass.
 
 #### Backend
 
